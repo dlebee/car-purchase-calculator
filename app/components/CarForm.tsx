@@ -11,6 +11,19 @@ interface CarFormProps {
 }
 
 export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
+  // Store string values for numeric inputs to preserve decimal points during typing
+  const [stringValues, setStringValues] = useState<Record<string, string>>({
+    listedPrice: '',
+    negotiatedPrice: '',
+    apr: '',
+    termLength: '',
+    taxRate: '',
+    creditScore: '',
+    mileage: '',
+    year: new Date().getFullYear().toString(),
+    downPayment: '',
+  });
+
   const [formData, setFormData] = useState<Partial<Car>>({
     make: '',
     model: '',
@@ -33,6 +46,18 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
   useEffect(() => {
     if (car) {
       setFormData(car);
+      // Initialize string values from car data
+      setStringValues({
+        listedPrice: car.listedPrice ? car.listedPrice.toString() : '',
+        negotiatedPrice: car.negotiatedPrice ? car.negotiatedPrice.toString() : '',
+        apr: car.apr ? (car.apr * 100).toString() : '',
+        termLength: car.termLength ? car.termLength.toString() : '',
+        taxRate: car.taxRate ? car.taxRate.toString() : '',
+        creditScore: car.creditScore ? car.creditScore.toString() : '',
+        mileage: car.mileage ? car.mileage.toString() : '',
+        year: car.year ? car.year.toString() : new Date().getFullYear().toString(),
+        downPayment: car.downPayment ? car.downPayment.toString() : '',
+      });
     }
   }, [car]);
 
@@ -40,18 +65,26 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
+    
+    // Text fields - store directly
+    if (name === 'make' || name === 'model' || name === 'tier' || name === 'dealership' || name === 'vin' || name === 'notes') {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      return;
+    }
+    
+    // Checkbox fields
+    if (type === 'checkbox') {
+      setFormData((prev) => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+      return;
+    }
+    
+    // Numeric fields - store raw string value, then parse for calculations
+    setStringValues((prev) => ({ ...prev, [name]: value }));
+    
+    // Parse the value for calculations (allow empty string and partial decimals)
+    const numValue = value === '' || value === '.' ? 0 : parseFloat(value) || 0;
+    
     setFormData((prev) => {
-      // Text fields
-      if (name === 'make' || name === 'model' || name === 'tier' || name === 'dealership' || name === 'vin' || name === 'notes') {
-        return { ...prev, [name]: value };
-      }
-      // Checkbox fields
-      if (type === 'checkbox') {
-        return { ...prev, [name]: (e.target as HTMLInputElement).checked };
-      }
-      // Number fields - allow empty string, parse to number
-      const numValue = value === '' ? 0 : parseFloat(value) || 0;
-      
       // APR needs special handling (convert percentage to decimal)
       if (name === 'apr') {
         return { ...prev, [name]: numValue / 100 };
@@ -73,24 +106,36 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     });
   };
 
-  const formatNumberValue = (value: number | undefined): string => {
-    if (value === undefined || value === 0) return '';
-    return value.toString();
+  const getStringValue = (name: string): string => {
+    return stringValues[name] || '';
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Ensure tax is calculated from tax rate and negotiated price
-    const negotiatedPrice = formData.negotiatedPrice || 0;
-    const taxRate = formData.taxRate || 0;
+    // Parse all string values to numbers
+    const negotiatedPrice = parseFloat(stringValues.negotiatedPrice) || 0;
+    const taxRate = parseFloat(stringValues.taxRate) || 0;
     const calculatedTax = (negotiatedPrice * taxRate) / 100;
     
     const carToSave: Car = {
       id: car?.id || '',
-      ...formData,
-      tax: calculatedTax,
+      make: formData.make || '',
+      model: formData.model || '',
+      tier: formData.tier || '',
+      dealership: formData.dealership || '',
+      vin: formData.vin || '',
+      listedPrice: parseFloat(stringValues.listedPrice) || 0,
+      negotiatedPrice: negotiatedPrice,
+      apr: parseFloat(stringValues.apr) / 100 || 0,
+      termLength: parseFloat(stringValues.termLength) || 0,
+      notes: formData.notes || '',
       taxRate: taxRate,
-    } as Car;
+      tax: calculatedTax,
+      creditScore: parseFloat(stringValues.creditScore) || 0,
+      mileage: parseFloat(stringValues.mileage) || 0,
+      year: parseFloat(stringValues.year) || new Date().getFullYear(),
+      downPayment: parseFloat(stringValues.downPayment) || 0,
+    };
     carStorage.saveCar(carToSave);
     onSave();
   };
@@ -108,6 +153,18 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
             const json = event.target?.result as string;
             const importedCar = carStorage.importCar(json);
             setFormData(importedCar);
+            // Initialize string values from imported car
+            setStringValues({
+              listedPrice: importedCar.listedPrice ? importedCar.listedPrice.toString() : '',
+              negotiatedPrice: importedCar.negotiatedPrice ? importedCar.negotiatedPrice.toString() : '',
+              apr: importedCar.apr ? (importedCar.apr * 100).toString() : '',
+              termLength: importedCar.termLength ? importedCar.termLength.toString() : '',
+              taxRate: importedCar.taxRate ? importedCar.taxRate.toString() : '',
+              creditScore: importedCar.creditScore ? importedCar.creditScore.toString() : '',
+              mileage: importedCar.mileage ? importedCar.mileage.toString() : '',
+              year: importedCar.year ? importedCar.year.toString() : new Date().getFullYear().toString(),
+              downPayment: importedCar.downPayment ? importedCar.downPayment.toString() : '',
+            });
           } catch (error) {
             alert('Error importing car: ' + (error as Error).message);
           }
@@ -214,7 +271,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="listedPrice"
-                  value={formatNumberValue(formData.listedPrice)}
+                  value={getStringValue('listedPrice')}
                   onChange={handleChange}
                   required
                   placeholder="Listed/advertised price"
@@ -231,7 +288,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="negotiatedPrice"
-                  value={formatNumberValue(formData.negotiatedPrice)}
+                  value={getStringValue('negotiatedPrice')}
                   onChange={handleChange}
                   required
                   placeholder="What you're actually paying"
@@ -248,7 +305,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="apr"
-                  value={formatNumberValue((formData.apr || 0) * 100)}
+                  value={getStringValue('apr')}
                   onChange={handleChange}
                   required
                   placeholder="e.g., 2.5 for 2.5%"
@@ -262,7 +319,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="termLength"
-                  value={formatNumberValue(formData.termLength)}
+                  value={getStringValue('termLength')}
                   onChange={handleChange}
                   required
                   placeholder="e.g., 48"
@@ -276,7 +333,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="taxRate"
-                  value={formatNumberValue(formData.taxRate)}
+                  value={getStringValue('taxRate')}
                   onChange={handleChange}
                   placeholder="e.g., 7.5 for 7.5%"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -294,7 +351,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="creditScore"
-                  value={formatNumberValue(formData.creditScore)}
+                  value={getStringValue('creditScore')}
                   onChange={handleChange}
                   placeholder="e.g., 750"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -305,7 +362,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="mileage"
-                  value={formatNumberValue(formData.mileage)}
+                  value={getStringValue('mileage')}
                   onChange={handleChange}
                   placeholder="e.g., 25000"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -316,7 +373,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="year"
-                  value={formatNumberValue(formData.year)}
+                  value={getStringValue('year')}
                   onChange={handleChange}
                   required
                   placeholder="e.g., 2024"
@@ -330,7 +387,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <input
                   type="text"
                   name="downPayment"
-                  value={formatNumberValue(formData.downPayment)}
+                  value={getStringValue('downPayment')}
                   onChange={handleChange}
                   placeholder="e.g., 5000"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
