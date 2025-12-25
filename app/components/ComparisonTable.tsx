@@ -7,9 +7,10 @@ interface ComparisonTableProps {
   cars: Car[];
   downPaymentOverride?: number;
   termOverride?: number;
+  onExportCSV?: () => void;
 }
 
-export default function ComparisonTable({ cars, downPaymentOverride, termOverride }: ComparisonTableProps) {
+export default function ComparisonTable({ cars, downPaymentOverride, termOverride, onExportCSV }: ComparisonTableProps) {
   if (cars.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
@@ -155,8 +156,96 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     return currentValue - baselineValue;
   };
 
+  const formatValueForCSV = (value: any, format?: string): string => {
+    if (value === null || value === undefined || value === '') {
+      return '';
+    }
+
+    if (format === 'currency') {
+      return Number(value).toFixed(2);
+    }
+
+    if (format === 'percentage') {
+      const numValue = Number(value);
+      if (numValue > 1 || numValue === 0) {
+        return numValue.toFixed(2);
+      } else {
+        return (numValue * 100).toFixed(2);
+      }
+    }
+
+    if (format === 'number') {
+      return Number(value).toString();
+    }
+
+    // Escape commas and quotes for CSV
+    const stringValue = String(value);
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+  };
+
+  const exportToCSV = () => {
+    // Create CSV header
+    const headers = ['Field', ...cars.map(car => `${car.year} ${car.make} ${car.model}`)];
+    
+    // Create CSV rows
+    const rows: string[][] = [];
+    
+    fields.forEach((field) => {
+      const row: string[] = [field.label];
+      cars.forEach((car, index) => {
+        const carWithOverride = carsWithOverride[index];
+        const originalCar = cars[index];
+        const value = getValue(carWithOverride, allMetrics[index], field, originalCar);
+        const difference = getDifference(field, value, allMetrics[index]);
+        const showDifference = difference !== null && index > 0 && Math.abs(difference) > 0.01;
+        
+        let cellValue = formatValueForCSV(value, field.format);
+        if (showDifference) {
+          const diffStr = formatValueForCSV(difference, field.format);
+          cellValue += ` (${difference > 0 ? '+' : ''}${diffStr})`;
+        }
+        
+        row.push(cellValue);
+      });
+      rows.push(row);
+    });
+    
+    // Convert to CSV string
+    const csvContent = [
+      headers.map(h => h.includes(',') ? `"${h.replace(/"/g, '""')}"` : h).join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    // Create download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `car-comparison-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    if (onExportCSV) {
+      onExportCSV();
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-x-auto">
+      <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Comparison Table</h3>
+        <button
+          onClick={exportToCSV}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors text-sm"
+        >
+          Export to CSV
+        </button>
+      </div>
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-700">
           <tr>
