@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Car Purchase Calculator
 
-## Getting Started
+A Next.js application for calculating and comparing car purchase costs with detailed financial breakdowns.
 
-First, run the development server:
+## Features
+
+- Add, edit, and delete cars with detailed financial information
+- Compare multiple cars side-by-side
+- Payment breakdown charts showing interest and principal over time
+- Export/import cars as JSON
+- CSV export for comparison tables
+- VIN lookup to auto-fill car details (uses free NHTSA API - no API key required)
+
+## Setup
+
+No API keys or environment variables required! The VIN lookup feature uses the free NHTSA (National Highway Traffic Safety Administration) VIN decoder API, which is completely free and requires no authentication.
+
+### Local Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Adding a Car
 
-## Learn More
+1. Click "Add New Car"
+2. Enter car details manually, OR
+3. Enter a VIN and click "Fetch Details" to auto-fill Make, Model, Year, Tier, and Mileage
+4. Fill in financial details (prices, APR, term length, fees, etc.)
+5. Click "Save"
 
-To learn more about Next.js, take a look at the following resources:
+### Comparing Cars
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Navigate to the "Compare Cars" page
+2. Select cars to compare
+3. Optionally set overrides for Down Payment, Term Length, or APR to compare all cars under the same financing conditions
+4. Export comparison as CSV if needed
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Exporting/Importing
 
-## Deploy on Vercel
+- **Export Single Car**: Click "Export JSON" in the car form
+- **Export All Cars**: Click "Export All Cars" on the main page
+- **Import**: Use "Import JSON" in the car form or "Import All Cars" on the main page
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- Recharts (for charts)
+- NHTSA VIN Decoder API (free, no API key required)

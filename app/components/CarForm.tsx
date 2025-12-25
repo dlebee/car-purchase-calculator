@@ -19,8 +19,13 @@ interface CarFormProps {
 }
 
 export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
+  const [isFetchingCar, setIsFetchingCar] = useState(false);
+  const [vinFetchStatus, setVinFetchStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [vinFetchError, setVinFetchError] = useState<string>('');
+  
   // Store string values for numeric inputs to preserve decimal points during typing
   const [stringValues, setStringValues] = useState<Record<string, string>>({
+    vin: '',
     listedPrice: '',
     negotiatedPrice: '',
     apr: '',
@@ -92,6 +97,10 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     // Text fields - store directly
     if (name === 'make' || name === 'model' || name === 'tier' || name === 'dealership' || name === 'vin' || name === 'notes') {
       setFormData((prev) => ({ ...prev, [name]: value }));
+      // Also update stringValues for VIN to keep it in sync
+      if (name === 'vin') {
+        setStringValues((prev) => ({ ...prev, vin: value.toUpperCase() }));
+      }
       return;
     }
     
@@ -187,6 +196,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
             setFormData(importedCar);
             // Initialize string values from imported car
             setStringValues({
+              vin: importedCar.vin || '',
               listedPrice: importedCar.listedPrice ? importedCar.listedPrice.toString() : '',
               negotiatedPrice: importedCar.negotiatedPrice ? importedCar.negotiatedPrice.toString() : '',
               apr: importedCar.apr ? (importedCar.apr * 100).toString() : '',
@@ -230,6 +240,68 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       URL.revokeObjectURL(url);
     } catch (error) {
       alert('Error exporting car: ' + (error as Error).message);
+    }
+  };
+
+  const handleFetchCarByVIN = async () => {
+    const vin = stringValues.vin?.trim().toUpperCase();
+    if (!vin) {
+      setVinFetchStatus('error');
+      setVinFetchError('Please enter a VIN');
+      setTimeout(() => setVinFetchStatus('idle'), 3000);
+      return;
+    }
+
+    setIsFetchingCar(true);
+    setVinFetchStatus('idle');
+    setVinFetchError('');
+    
+    try {
+      const response = await fetch('/api/fetch-car-by-vin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ vin }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch car details');
+      }
+
+      if (result.success && result.data) {
+        const carData = result.data;
+        // Update form data with fetched car details
+        setFormData((prev) => ({
+          ...prev,
+          make: carData.make || prev.make,
+          model: carData.model || prev.model,
+          year: carData.year || prev.year,
+          tier: carData.tier || prev.tier,
+          mileage: carData.mileage || prev.mileage,
+        }));
+
+        // Update string values
+        setStringValues((prev) => ({
+          ...prev,
+          year: carData.year ? carData.year.toString() : prev.year,
+          mileage: carData.mileage ? carData.mileage.toString() : prev.mileage,
+        }));
+
+        setVinFetchStatus('success');
+        setTimeout(() => setVinFetchStatus('idle'), 3000);
+      }
+    } catch (error) {
+      setVinFetchStatus('error');
+      setVinFetchError((error as Error).message);
+      setTimeout(() => {
+        setVinFetchStatus('idle');
+        setVinFetchError('');
+      }, 5000);
+    } finally {
+      setIsFetchingCar(false);
     }
   };
 
@@ -290,16 +362,68 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   VIN
                 </label>
-                <input
-                  type="text"
-                  name="vin"
-                  value={formData.vin || ''}
-                  onChange={handleChange}
-                  maxLength={17}
-                  placeholder="17-character VIN"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white uppercase"
-                  style={{ textTransform: 'uppercase' }}
-                />
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      name="vin"
+                      value={getStringValue('vin')}
+                      onChange={(e) => {
+                        handleChange(e);
+                        // Reset status when VIN changes
+                        if (vinFetchStatus !== 'idle') {
+                          setVinFetchStatus('idle');
+                          setVinFetchError('');
+                        }
+                      }}
+                      placeholder="Enter VIN"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white uppercase pr-10"
+                      style={{ textTransform: 'uppercase' }}
+                    />
+                    {vinFetchStatus === 'success' && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                    {vinFetchStatus === 'error' && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleFetchCarByVIN}
+                    disabled={isFetchingCar || !getStringValue('vin')}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-2"
+                  >
+                    {isFetchingCar ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Fetching...
+                      </>
+                    ) : (
+                      'Fetch Details'
+                    )}
+                  </button>
+                </div>
+                {vinFetchStatus === 'error' && vinFetchError && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    {vinFetchError}
+                  </p>
+                )}
+                {vinFetchStatus === 'idle' && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Enter VIN and click &quot;Fetch Details&quot; to auto-fill car information (NHTSA will validate the VIN)
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
