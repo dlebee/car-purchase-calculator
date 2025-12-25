@@ -326,7 +326,7 @@ export default function CompareVisualPage() {
                   label={{ value: 'Total Cost ($)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
-                  formatter={(value: number) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  formatter={(value: number | undefined) => value !== undefined ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                 />
                 <Legend />
                 <Bar dataKey="totalCost" fill="#3b82f6" name="Total Cost" />
@@ -353,7 +353,7 @@ export default function CompareVisualPage() {
                   label={{ value: 'Monthly Payment ($)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
-                  formatter={(value: number) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  formatter={(value: number | undefined) => value !== undefined ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                 />
                 <Legend />
                 <Bar dataKey="monthlyPayment" fill="#10b981" name="Monthly Payment" />
@@ -380,7 +380,7 @@ export default function CompareVisualPage() {
                   label={{ value: 'Total Interest ($)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
-                  formatter={(value: number) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  formatter={(value: number | undefined) => value !== undefined ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                 />
                 <Legend />
                 <Bar dataKey="totalInterest" fill="#ef4444" name="Total Interest" />
@@ -407,7 +407,7 @@ export default function CompareVisualPage() {
                   label={{ value: 'APR (%)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
-                  formatter={(value: number) => `${value.toFixed(2)}%`}
+                  formatter={(value: number | undefined) => value !== undefined ? `${value.toFixed(2)}%` : ''}
                 />
                 <Legend />
                 <Bar dataKey="apr" fill="#8b5cf6" name="APR" />
@@ -434,7 +434,7 @@ export default function CompareVisualPage() {
                   label={{ value: 'Discount ($)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
-                  formatter={(value: number) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  formatter={(value: number | undefined) => value !== undefined ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                 />
                 <Legend />
                 <Bar dataKey="discount" fill="#f59e0b" name="Discount" />
@@ -461,7 +461,7 @@ export default function CompareVisualPage() {
                   label={{ value: 'Financed Amount ($)', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
-                  formatter={(value: number) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  formatter={(value: number | undefined) => value !== undefined ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                 />
                 <Legend />
                 <Bar dataKey="financedAmount" fill="#06b6d4" name="Financed Amount" />
@@ -574,7 +574,7 @@ export default function CompareVisualPage() {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          label={({ name, percent }) => `${name}: ${percent !== undefined ? (percent * 100).toFixed(0) : '0'}%`}
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
@@ -584,7 +584,7 @@ export default function CompareVisualPage() {
                           ))}
                         </Pie>
                         <Tooltip
-                          formatter={(value: number) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                          formatter={(value: number | undefined) => value !== undefined ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                         />
                       </PieChart>
                     </ResponsiveContainer>
