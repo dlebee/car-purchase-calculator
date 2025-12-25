@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Car } from '@/lib/types';
 import carStorage from '@/lib/carStorage';
+import { calculateCarMetrics } from '@/lib/carCalculations';
 import ComparisonTable from '../components/ComparisonTable';
 import Link from 'next/link';
 
@@ -35,7 +36,14 @@ export default function ComparePage() {
     });
   };
 
-  const selectedCars = cars.filter((car) => selectedCarIds.has(car.id));
+  const selectedCars = cars
+    .filter((car) => selectedCarIds.has(car.id))
+    .sort((a, b) => {
+      // Sort by total cost (lowest first) - best priced car on the left
+      const metricsA = calculateCarMetrics(a);
+      const metricsB = calculateCarMetrics(b);
+      return metricsA.totalCost - metricsB.totalCost;
+    });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
