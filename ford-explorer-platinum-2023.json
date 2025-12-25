@@ -1,0 +1,20 @@
+{
+  "id": "lease-buyout-2023-explorer",
+  "make": "Ford",
+  "model": "Explorer",
+  "tier": "Platinum",
+  "dealership": "",
+  "vin": "1FMSK7FH6PGA94004",
+  "listedPrice": 32000,
+  "negotiatedPrice": 32883.75,
+  "apr": 0,
+  "termLength": 60,
+  "notes": "Converted from lease buyout data. Original lease: 2023 Ford Explorer Platinum, VIN: 1FMSK7FH6PGA94004. Lease started: 2023-04-06, 39-month term. Monthly payment was $619.95. Residual value: $29,788. Buyout includes remaining payments ($3,099.75) + residual value ($29,788) = $32,883.75. Note: APR, tax, credit score, mileage, and down payment not available from lease data - update these fields as needed.",
+  "taxRate": 0,
+  "tax": 0,
+  "creditScore": 0,
+  "mileage": 0,
+  "year": 2023,
+  "downPayment": 0
+}
+

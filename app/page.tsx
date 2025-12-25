@@ -1,65 +1,204 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Car } from '@/lib/types';
+import carStorage from '@/lib/carStorage';
+import CarCard from './components/CarCard';
+import CarForm from './components/CarForm';
+import CarChart from './components/CarChart';
+import Link from 'next/link';
 
 export default function Home() {
+  const [cars, setCars] = useState<Car[]>([]);
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+  const [editingCar, setEditingCar] = useState<Car | undefined>(undefined);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    loadCars();
+  }, []);
+
+  const loadCars = () => {
+    const allCars = carStorage.getAllCars();
+    setCars(allCars);
+    if (allCars.length > 0 && !selectedCar) {
+      setSelectedCar(allCars[0]);
+    }
+  };
+
+  const handleAddCar = () => {
+    setEditingCar(undefined);
+    setShowForm(true);
+  };
+
+  const handleEditCar = (car: Car) => {
+    setEditingCar(car);
+    setShowForm(true);
+  };
+
+  const handleDeleteCar = (carId: string) => {
+    if (confirm('Are you sure you want to delete this car?')) {
+      carStorage.deleteCar(carId);
+      loadCars();
+      if (selectedCar?.id === carId) {
+        const remainingCars = cars.filter((c) => c.id !== carId);
+        setSelectedCar(remainingCars.length > 0 ? remainingCars[0] : null);
+      }
+    }
+  };
+
+  const handleSaveCar = () => {
+    setShowForm(false);
+    setEditingCar(undefined);
+    loadCars();
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+    setEditingCar(undefined);
+  };
+
+  const handleSelectCar = (car: Car) => {
+    setSelectedCar(car);
+  };
+
+  const handleExportAll = () => {
+    try {
+      const json = carStorage.exportAllCars();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `all-cars-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Error exporting cars: ' + (error as Error).message);
+    }
+  };
+
+  const handleImportAll = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const json = event.target?.result as string;
+            if (
+              confirm(
+                'This will replace all current cars. Are you sure you want to continue?'
+              )
+            ) {
+              carStorage.importAllCars(json);
+              loadCars();
+              setSelectedCar(null);
+            }
+          } catch (error) {
+            alert('Error importing cars: ' + (error as Error).message);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold text-center mb-2 text-gray-900 dark:text-white">
+            Car Purchase Calculator
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/compare"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Compare Cars
+          </Link>
         </div>
-      </main>
+
+        <div className="mb-6 flex gap-4">
+          <button
+            onClick={handleAddCar}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+          >
+            Add New Car
+          </button>
+          <button
+            onClick={handleExportAll}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={cars.length === 0}
+          >
+            Export All Cars
+          </button>
+          <button
+            onClick={handleImportAll}
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors"
+          >
+            Import All Cars
+          </button>
+        </div>
+
+        {cars.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
+            No cars added yet. Click &quot;Add New Car&quot; to get started.
+          </div>
+        ) : (
+          <>
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Select Car
+              </label>
+              <select
+                value={selectedCar?.id || ''}
+                onChange={(e) => {
+                  const car = cars.find((c) => c.id === e.target.value);
+                  setSelectedCar(car || null);
+                }}
+                className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white text-lg"
+              >
+                <option value="">Select a car...</option>
+                {cars.map((car) => (
+                  <option key={car.id} value={car.id}>
+                    {car.year} {car.make} {car.model} {car.tier ? `(${car.tier})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedCar && (
+              <div className="mb-6">
+                <CarCard
+                  car={selectedCar}
+                  onEdit={() => handleEditCar(selectedCar)}
+                  onDelete={() => handleDeleteCar(selectedCar.id)}
+                  onSelect={() => {}}
+                  isSelected={false}
+                />
+              </div>
+            )}
+
+            <div>
+              <CarChart car={selectedCar} />
+            </div>
+          </>
+        )}
+      </div>
+
+      {showForm && (
+        <CarForm
+          car={editingCar}
+          onSave={handleSaveCar}
+          onCancel={handleCancelForm}
+        />
+      )}
     </div>
   );
 }
