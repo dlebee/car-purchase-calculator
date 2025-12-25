@@ -155,7 +155,7 @@ export default function CarCard({
         {car.notes && (
           <div className="text-[10px] mt-1 pt-1 border-t border-gray-200 dark:border-gray-700">
             <span className="text-gray-600 dark:text-gray-400">Notes:</span>{' '}
-            <span className="text-gray-900 dark:text-white">{car.notes}</span>
+            <span className="text-gray-900 dark:text-white break-words overflow-wrap-anywhere" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{car.notes}</span>
           </div>
         )}
       </div>

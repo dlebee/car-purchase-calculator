@@ -699,7 +699,8 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 value={formData.notes}
                 onChange={handleChange}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y overflow-wrap-anywhere break-words"
+                style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
               />
             </div>
             <div className="flex gap-4 pt-4">
