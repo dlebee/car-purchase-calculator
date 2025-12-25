@@ -77,7 +77,7 @@ export default function ComparePage() {
                         {car.year} {car.make} {car.model}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        ${car.buyPrice.toLocaleString()}
+                        ${car.negotiatedPrice.toLocaleString()}
                       </div>
                     </div>
                   </label>
