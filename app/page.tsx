@@ -18,6 +18,16 @@ export default function Home() {
     loadCars();
   }, []);
 
+  // Refresh selected car when cars array updates (e.g., after editing)
+  useEffect(() => {
+    if (selectedCar) {
+      const updatedCar = cars.find((c) => c.id === selectedCar.id);
+      if (updatedCar && updatedCar !== selectedCar) {
+        setSelectedCar(updatedCar);
+      }
+    }
+  }, [cars, selectedCar]);
+
   const loadCars = () => {
     const allCars = carStorage.getAllCars();
     setCars(allCars);

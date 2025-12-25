@@ -13,6 +13,14 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+// Florida fee ranges for validation
+const FLORIDA_FEE_RANGES = {
+  dealerFees: { min: 600, max: 999, typical: 950 },
+  registrationFees: { min: 14.50, max: 257.50, typical: 225 },
+  titleFees: { min: 75.75, max: 85.75, typical: 75.75 },
+  otherFees: { min: 0, max: 100, typical: 28 },
+};
+
 interface CarChartProps {
   car: Car | null;
 }
@@ -83,11 +91,74 @@ export default function CarChart({ car }: CarChartProps) {
   const payoffTimeYears = (payoffTime / 12).toFixed(1);
   const payoffDateStr = metrics.payoffDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
+  // Check for fees outside Florida expected ranges
+  const feeWarnings: Array<{ name: string; value: number; range: string; typical: number }> = [];
+  if (car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.max) {
+    feeWarnings.push({
+      name: 'Dealer Fees',
+      value: car.dealerFees,
+      range: `$${FLORIDA_FEE_RANGES.dealerFees.min}-${FLORIDA_FEE_RANGES.dealerFees.max}`,
+      typical: FLORIDA_FEE_RANGES.dealerFees.typical,
+    });
+  }
+  if (car.registrationFees > FLORIDA_FEE_RANGES.registrationFees.max) {
+    feeWarnings.push({
+      name: 'Registration Fees',
+      value: car.registrationFees,
+      range: `$${FLORIDA_FEE_RANGES.registrationFees.min}-${FLORIDA_FEE_RANGES.registrationFees.max}`,
+      typical: FLORIDA_FEE_RANGES.registrationFees.typical,
+    });
+  }
+  if (car.titleFees > FLORIDA_FEE_RANGES.titleFees.max) {
+    feeWarnings.push({
+      name: 'Title Fees',
+      value: car.titleFees,
+      range: `$${FLORIDA_FEE_RANGES.titleFees.min}-${FLORIDA_FEE_RANGES.titleFees.max}`,
+      typical: FLORIDA_FEE_RANGES.titleFees.typical,
+    });
+  }
+  if (car.otherFees > FLORIDA_FEE_RANGES.otherFees.max) {
+    feeWarnings.push({
+      name: 'Other Fees',
+      value: car.otherFees,
+      range: `$${FLORIDA_FEE_RANGES.otherFees.min}-${FLORIDA_FEE_RANGES.otherFees.max}`,
+      typical: FLORIDA_FEE_RANGES.otherFees.typical,
+    });
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
         Payment Breakdown: {car.year} {car.make} {car.model}
       </h3>
+      {feeWarnings.length > 0 && (
+        <div className="mb-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-lg p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-600 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3 flex-1">
+              <h4 className="text-sm font-semibold text-red-800 dark:text-red-300">
+                ⚠️ Fees Exceed Florida Expected Ranges
+              </h4>
+              <div className="mt-2 text-sm text-red-700 dark:text-red-400">
+                <ul className="list-disc list-inside space-y-1">
+                  {feeWarnings.map((warning, index) => (
+                    <li key={index}>
+                      <strong>{warning.name}:</strong> ${warning.value.toFixed(2)} exceeds expected range ({warning.range}). Typical: ${warning.typical.toFixed(2)}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs italic">
+                  Consider negotiating these fees or comparing with other dealers.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mb-4 space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
@@ -186,10 +257,15 @@ export default function CarChart({ car }: CarChartProps) {
               {metrics.totalAllFees > 0 && (
                 <>
                   {car.dealerFees > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        Dealer Fees (Doc, Prep, etc.):
-                      </span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Dealer Fees (Doc, Prep, etc.):
+                        </span>
+                        <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-semibold">
+                          ✓ Negotiable
+                        </span>
+                      </div>
                       <span className="font-semibold text-gray-900 dark:text-white">
                         ${car.dealerFees.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
@@ -199,10 +275,15 @@ export default function CarChart({ car }: CarChartProps) {
                     </div>
                   )}
                   {car.registrationFees > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        Registration Fees:
-                      </span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Registration Fees:
+                        </span>
+                        <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
+                          ⚠ Usually mandatory
+                        </span>
+                      </div>
                       <span className="font-semibold text-gray-900 dark:text-white">
                         ${car.registrationFees.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
@@ -212,10 +293,15 @@ export default function CarChart({ car }: CarChartProps) {
                     </div>
                   )}
                   {car.titleFees > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        Title Fees:
-                      </span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Title Fees:
+                        </span>
+                        <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
+                          ⚠ Usually mandatory
+                        </span>
+                      </div>
                       <span className="font-semibold text-gray-900 dark:text-white">
                         ${car.titleFees.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
@@ -225,10 +311,15 @@ export default function CarChart({ car }: CarChartProps) {
                     </div>
                   )}
                   {car.otherFees > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        Other Fees:
-                      </span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Other Fees:
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                          Depends on type
+                        </span>
+                      </div>
                       <span className="font-semibold text-gray-900 dark:text-white">
                         ${car.otherFees.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
@@ -248,6 +339,14 @@ export default function CarChart({ car }: CarChartProps) {
                       })}
                     </span>
                   </div>
+                  {car.dealerFees > 0 && (
+                    <div className="mt-3 pt-3 border-t border-amber-300 dark:border-amber-700">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        <strong>Fee Negotiation Tip:</strong> Dealer fees (doc/prep) are often negotiable. 
+                        Ask to have them waived or reduced, especially if you're paying cash or have your own financing.
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
               {metrics.dealerFinancingMarkupCost > 0 && (
