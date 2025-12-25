@@ -13,7 +13,21 @@ A Next.js application for calculating and comparing car purchase costs with deta
 
 ## Setup
 
-No API keys or environment variables required! The VIN lookup feature uses the free NHTSA (National Highway Traffic Safety Administration) VIN decoder API, which is completely free and requires no authentication.
+### Environment Variables
+
+**For AI Analysis Feature (Optional):**
+- `OPENAI_API_KEY` - Required for the AI comparison analysis feature. Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+**Note:** The VIN lookup feature uses the free NHTSA (National Highway Traffic Safety Administration) VIN decoder API, which requires no API key.
+
+### Vercel Deployment
+
+When deploying to Vercel:
+1. Go to your project settings → Environment Variables
+2. Add `OPENAI_API_KEY` with your OpenAI API key value
+3. **Important:** Select the correct environment (Production, Preview, or Development)
+4. **Redeploy** your application after adding the environment variable (Vercel doesn't automatically pick up new env vars on existing deployments)
+5. The API route is server-side only, so the environment variable will be available at runtime
 
 ### Local Development
 

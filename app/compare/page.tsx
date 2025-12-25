@@ -7,6 +7,7 @@ import { calculateCarMetrics } from '@/lib/carCalculations';
 import ComparisonTable from '../components/ComparisonTable';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function ComparePage() {
   const [cars, setCars] = useState<Car[]>([]);
@@ -326,8 +327,9 @@ export default function ComparePage() {
                       </svg>
                     </button>
                   </div>
-                  <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-indigo-900 dark:prose-headings:text-indigo-300 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-ul:text-gray-700 dark:prose-ul:text-gray-300 prose-li:text-gray-700 dark:prose-li:text-gray-300">
+                  <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-indigo-900 dark:prose-headings:text-indigo-300 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-ul:text-gray-700 dark:prose-ul:text-gray-300 prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-table:text-gray-700 dark:prose-table:text-gray-300">
                     <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
                       components={{
                         h1: ({node, ...props}) => <h1 className="text-2xl font-bold mb-4 mt-6 first:mt-0" {...props} />,
                         h2: ({node, ...props}) => <h2 className="text-xl font-semibold mb-3 mt-5 first:mt-0" {...props} />,
@@ -340,6 +342,16 @@ export default function ComparePage() {
                         em: ({node, ...props}) => <em className="italic" {...props} />,
                         code: ({node, ...props}) => <code className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-sm font-mono" {...props} />,
                         blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-indigo-400 pl-4 italic my-4" {...props} />,
+                        table: ({node, ...props}) => (
+                          <div className="overflow-x-auto my-4">
+                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg" {...props} />
+                          </div>
+                        ),
+                        thead: ({node, ...props}) => <thead className="bg-gray-50 dark:bg-gray-700" {...props} />,
+                        tbody: ({node, ...props}) => <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700" {...props} />,
+                        tr: ({node, ...props}) => <tr className="hover:bg-gray-50 dark:hover:bg-gray-700" {...props} />,
+                        th: ({node, ...props}) => <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" {...props} />,
+                        td: ({node, ...props}) => <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300" {...props} />,
                       }}
                     >
                       {analysis}
