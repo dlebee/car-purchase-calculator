@@ -81,7 +81,13 @@ export function calculateCarMetrics(car: Car): CarCalculations {
     0
   );
   const totalTax = calculatedTax;
-  const totalCost = principal + totalInterest;
+  
+  // Cost breakdown
+  const adjustedCost = car.negotiatedPrice - car.downPayment; // Amount that needs financing (before tax)
+  const financedAmount = principal; // Adjusted cost + tax (actual amount being financed)
+  
+  // Total cost = down payment + financed amount + total interest
+  const totalCost = car.downPayment + financedAmount + totalInterest;
   
   // Calculate discount: listed price vs negotiated price
   const discount = car.listedPrice - car.negotiatedPrice;
@@ -99,6 +105,8 @@ export function calculateCarMetrics(car: Car): CarCalculations {
     totalInterest,
     totalTax,
     totalCost,
+    adjustedCost,
+    financedAmount,
     discount,
     discountPercent,
     payoffDate,

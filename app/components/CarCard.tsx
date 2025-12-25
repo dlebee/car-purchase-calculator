@@ -60,6 +60,12 @@ export default function CarCard({
           <span className="text-gray-600 dark:text-gray-400">Negotiated Price:</span>{' '}
           <span className="font-semibold text-gray-900 dark:text-white">${car.negotiatedPrice.toLocaleString()}</span>
         </div>
+        {car.downPayment > 0 && (
+          <div>
+            <span className="text-gray-600 dark:text-gray-400">Down Payment:</span>{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">${car.downPayment.toLocaleString()}</span>
+          </div>
+        )}
         {car.taxRate > 0 && (
           <div>
             <span className="text-gray-600 dark:text-gray-400">Tax Rate:</span>{' '}

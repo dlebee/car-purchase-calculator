@@ -127,7 +127,7 @@ export default function CarChart({ car }: CarChartProps) {
             </div>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {car.tax > 0 && (
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Payoff Time</div>
@@ -149,6 +149,48 @@ export default function CarChart({ car }: CarChartProps) {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
+            </div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+              <div>Down Payment: ${car.downPayment.toLocaleString()}</div>
+              <div>Financed: ${metrics.financedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              <div>Interest: ${metrics.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
+          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Cost Breakdown</div>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Negotiated Price:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">${car.negotiatedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            {car.downPayment > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">- Down Payment:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">${car.downPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-1">
+              <span className="text-gray-600 dark:text-gray-400">Adjusted Cost:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">${metrics.adjustedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            {metrics.totalTax > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">+ Tax ({car.taxRate.toFixed(2)}%):</span>
+                <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-1 font-semibold">
+              <span className="text-gray-700 dark:text-gray-300">Financed Amount:</span>
+              <span className="text-blue-600 dark:text-blue-400">${metrics.financedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">+ Total Interest:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between border-t-2 border-gray-400 dark:border-gray-500 pt-2 font-bold">
+              <span className="text-gray-900 dark:text-white">Total Cost:</span>
+              <span className="text-gray-900 dark:text-white">${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>
@@ -226,41 +268,33 @@ export default function CarChart({ car }: CarChartProps) {
           </div>
         )}
       </div>
-      {car.taxRate > 0 && (
-        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Monthly Payment: <span className="font-semibold text-gray-900 dark:text-white">${metrics.monthlyPayment.toFixed(2)}</span>
-            {' + '}
-            Monthly Tax ({car.taxRate.toFixed(2)}%): <span className="font-semibold text-gray-900 dark:text-white">${(car.tax / car.termLength).toFixed(2)}</span>
-            {' = '}
-            <span className="font-bold text-blue-600 dark:text-blue-400">${metrics.monthlyPaymentWithTax.toFixed(2)}</span>
+      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Monthly Payment</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <span className="font-semibold text-gray-900 dark:text-white text-lg">${metrics.monthlyPayment.toFixed(2)}</span>
+          {' per month'}
+        </div>
+        <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+          <div className="italic">
+            • This payment covers: <span className="font-semibold">Financed Amount (${metrics.financedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) + Interest</span>
           </div>
-          {allTerms.length > 1 && (
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
-              Monthly payments by term: {allTerms.map((term, index) => {
-                const termMetrics = allMetrics.find(m => m.term === term)?.metrics;
-                if (!termMetrics) return null;
-                const monthlyWithTax = termMetrics.monthlyPaymentWithTax;
-                const isSelected = term === selectedTerm;
-                return (
-                  <span key={term}>
-                    {index > 0 && ' | '}
-                    <span className={isSelected ? 'font-semibold text-blue-600 dark:text-blue-400' : ''}>
-                      {term}m: ${monthlyWithTax.toFixed(2)}
-                    </span>
-                  </span>
-                );
-              })}
+          {metrics.totalTax > 0 ? (
+            <div className="italic">
+              • Tax ({car.taxRate.toFixed(2)}%) is <span className="font-semibold">included</span> in the financed amount and amortized over the loan term
+            </div>
+          ) : (
+            <div className="italic">
+              • No tax included
+            </div>
+          )}
+          {car.downPayment > 0 && (
+            <div className="italic">
+              • Down payment (${car.downPayment.toLocaleString()}) is <span className="font-semibold">not included</span> in monthly payments
             </div>
           )}
         </div>
-      )}
-      {car.taxRate === 0 && allTerms.length > 1 && (
-        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Monthly Payment: <span className="font-semibold text-gray-900 dark:text-white">${metrics.monthlyPayment.toFixed(2)}</span>
-          </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
+        {allTerms.length > 1 && (
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
             Monthly payments by term: {allTerms.map((term, index) => {
               const termMetrics = allMetrics.find(m => m.term === term)?.metrics;
               if (!termMetrics) return null;
@@ -276,8 +310,8 @@ export default function CarChart({ car }: CarChartProps) {
               );
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
       <div className="space-y-6">
         <div>
           <h4 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Cumulative Interest Paid</h4>

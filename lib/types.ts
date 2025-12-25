@@ -28,11 +28,13 @@ export interface PaymentScheduleEntry {
 }
 
 export interface CarCalculations {
-  monthlyPayment: number;
-  monthlyPaymentWithTax: number; // Monthly payment including tax spread over loan term
+  monthlyPayment: number; // Monthly payment on financed amount (principal + interest, tax included in principal if rolled into loan)
+  monthlyPaymentWithTax: number; // Monthly payment including tax spread over loan term (for display purposes)
   totalInterest: number;
   totalTax: number;
   totalCost: number;
+  adjustedCost: number; // Negotiated price - down payment (amount that needs financing before tax)
+  financedAmount: number; // Adjusted cost + tax (actual amount being financed)
   discount: number; // Discount from listed price (listedPrice - negotiatedPrice)
   discountPercent: number; // Discount as percentage
   payoffDate: Date; // Estimated date when loan will be fully paid off (first day of next month + term length)
