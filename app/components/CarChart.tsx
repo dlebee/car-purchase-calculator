@@ -89,73 +89,50 @@ export default function CarChart({ car }: CarChartProps) {
         Payment Breakdown: {car.year} {car.make} {car.model}
       </h3>
       <div className="mb-4 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Interest</div>
-            <div className="text-xl font-bold text-amber-700 dark:text-amber-400">
-              ${metrics.totalInterest.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </div>
-          </div>
-          {car.taxRate > 0 ? (
-            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 p-4 rounded-lg">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Tax Rate / Total Tax</div>
-              <div className="text-xl font-bold text-purple-700 dark:text-purple-400">
-                {car.taxRate.toFixed(2)}%
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                ${metrics.totalTax.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Payoff Time</div>
-              <div className="text-xl font-bold text-blue-700 dark:text-blue-400">
-                {payoffTime} months
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                ({payoffTimeYears} years)
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
-                Paid off by: <span className="font-semibold">{payoffDateStr}</span>
-              </div>
-            </div>
-          )}
-        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {car.tax > 0 && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Payoff Time</div>
-              <div className="text-xl font-bold text-blue-700 dark:text-blue-400">
-                {payoffTime} months
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                ({payoffTimeYears} years)
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
-                Paid off by: <span className="font-semibold">{payoffDateStr}</span>
-              </div>
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Payoff Time</div>
+            <div className="text-xl font-bold text-blue-700 dark:text-blue-400">
+              {payoffTime} months
             </div>
-          )}
-          <div className="bg-slate-50 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Cost</div>
-            <div className="text-xl font-bold text-slate-700 dark:text-slate-300">
-              ${totalCost.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              ({payoffTimeYears} years)
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 space-y-1">
-              <div>Down Payment: ${car.downPayment.toLocaleString()}</div>
-              <div>Financed: ${metrics.financedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              <div>Interest: ${metrics.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
+              Paid off by: <span className="font-semibold">{payoffDateStr}</span>
             </div>
           </div>
+          {metrics.discount !== 0 && (
+            <div className={`p-4 rounded-lg border ${
+              metrics.discount >= 0
+                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            }`}>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Discount (Listed vs Negotiated)
+              </div>
+              <div className="flex items-baseline gap-2">
+                <div className={`text-xl font-bold ${
+                  metrics.discount >= 0
+                    ? 'text-green-700 dark:text-green-400'
+                    : 'text-red-700 dark:text-red-400'
+                }`}>
+                  ${Math.abs(metrics.discount).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  ({metrics.discountPercent >= 0 ? '-' : '+'}{Math.abs(metrics.discountPercent).toFixed(1)}%)
+                </div>
+              </div>
+              {metrics.discount < 0 && (
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
+                  Paying more than listed price
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
           <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Cost Breakdown</div>
@@ -194,37 +171,6 @@ export default function CarChart({ car }: CarChartProps) {
             </div>
           </div>
         </div>
-        {metrics.discount !== 0 && (
-          <div className={`p-4 rounded-lg border ${
-            metrics.discount >= 0
-              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-              : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-          }`}>
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              Discount (Listed vs Negotiated)
-            </div>
-            <div className="flex items-baseline gap-2">
-              <div className={`text-xl font-bold ${
-                metrics.discount >= 0
-                  ? 'text-green-700 dark:text-green-400'
-                  : 'text-red-700 dark:text-red-400'
-              }`}>
-                ${Math.abs(metrics.discount).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                ({metrics.discountPercent >= 0 ? '-' : '+'}{Math.abs(metrics.discountPercent).toFixed(1)}%)
-              </div>
-            </div>
-            {metrics.discount < 0 && (
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
-                Paying more than listed price
-              </div>
-            )}
-          </div>
-        )}
         {allTerms.length > 1 && (
           <div className="p-4 rounded-lg border bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800">
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
