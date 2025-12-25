@@ -34,10 +34,51 @@ export default function CompareVisualPage() {
     loadCars();
   }, []);
 
+  // Load selected car IDs from localStorage on mount
+  useEffect(() => {
+    const savedIds = localStorage.getItem('compareSelectedCarIds');
+    if (savedIds) {
+      try {
+        const idsArray = JSON.parse(savedIds);
+        if (Array.isArray(idsArray) && idsArray.length > 0) {
+          setSelectedCarIds(new Set(idsArray));
+        }
+      } catch (e) {
+        // Invalid JSON, ignore
+      }
+    }
+  }, []);
+
+  // Save selected car IDs to localStorage whenever they change
+  useEffect(() => {
+    if (selectedCarIds.size > 0) {
+      localStorage.setItem('compareSelectedCarIds', JSON.stringify(Array.from(selectedCarIds)));
+    } else {
+      localStorage.removeItem('compareSelectedCarIds');
+    }
+  }, [selectedCarIds]);
+
   const loadCars = () => {
     const allCars = carStorage.getAllCars();
     setCars(allCars);
-    // Auto-select all cars initially
+    // Load saved selection from localStorage, or auto-select all if none saved
+    const savedIds = localStorage.getItem('compareSelectedCarIds');
+    if (savedIds) {
+      try {
+        const idsArray = JSON.parse(savedIds);
+        if (Array.isArray(idsArray) && idsArray.length > 0) {
+          // Only select cars that still exist
+          const validIds = idsArray.filter(id => allCars.some(c => c.id === id));
+          if (validIds.length > 0) {
+            setSelectedCarIds(new Set(validIds));
+            return;
+          }
+        }
+      } catch (e) {
+        // Invalid JSON, fall through to auto-select all
+      }
+    }
+    // Auto-select all cars if no saved selection or saved selection is invalid
     if (allCars.length > 0) {
       setSelectedCarIds(new Set(allCars.map((c) => c.id)));
     }
