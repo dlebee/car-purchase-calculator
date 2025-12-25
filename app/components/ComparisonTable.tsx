@@ -89,7 +89,7 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
       if (field.key === 'discount') return metrics.discount;
       if (field.key === 'discountPercent') return metrics.discountPercent / 100;
     }
-    return car[field.key];
+    return car[field.key as keyof Car];
   };
 
   return (

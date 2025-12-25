@@ -295,11 +295,11 @@ export default function CarChart({ car }: CarChartProps) {
                 label={{ value: 'Amount ($)', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip
-                formatter={(value: number) =>
-                  `$${value?.toLocaleString(undefined, {
+                formatter={(value: number | undefined) =>
+                  `$${(value ?? 0).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
-                  }) || '0.00'}`
+                  })}`
                 }
                 labelFormatter={(label) => `Date: ${label}`}
               />
@@ -340,11 +340,11 @@ export default function CarChart({ car }: CarChartProps) {
                 label={{ value: 'Amount ($)', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip
-                formatter={(value: number) =>
-                  `$${value?.toLocaleString(undefined, {
+                formatter={(value: number | undefined) =>
+                  `$${(value ?? 0).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
-                  }) || '0.00'}`
+                  })}`
                 }
                 labelFormatter={(label) => `Date: ${label}`}
               />
