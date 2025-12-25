@@ -197,7 +197,13 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     const hasOverrides = downPaymentOverride !== undefined || termOverride !== undefined || aprOverride !== undefined;
     
     // Create CSV header
-    const headers = ['Field', ...cars.map(car => `${car.year} ${car.make} ${car.model}`)];
+    const headers = ['Field', ...cars.map(car => {
+      const parts = [car.year, car.make, car.model];
+      if (car.tier && car.tier.trim() !== '') {
+        parts.push(car.tier);
+      }
+      return parts.join(' ');
+    })];
     
     // Create CSV rows
     const rows: string[][] = [];
@@ -300,7 +306,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
                   key={car.id}
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider min-w-[200px] bg-gray-50 dark:bg-gray-700"
                 >
-                  {car.year} {car.make} {car.model}
+                  {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
                 </th>
               ))}
             </tr>

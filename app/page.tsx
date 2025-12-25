@@ -135,6 +135,28 @@ export default function Home() {
     setSelectedCar(car);
   };
 
+  const handleFixEmptyTermsAndAPR = () => {
+    const allCars = carStorage.getAllCars();
+    let updatedCount = 0;
+    
+    allCars.forEach((car) => {
+      // Check if car has empty term length (0) and empty APR (0)
+      if (car.termLength === 0 && car.apr === 0) {
+        car.termLength = 36;
+        car.apr = 0.045; // 4.5% APR
+        carStorage.saveCar(car);
+        updatedCount++;
+      }
+    });
+    
+    if (updatedCount > 0) {
+      alert(`Updated ${updatedCount} car${updatedCount > 1 ? 's' : ''} with default values (36 months, 4.5% APR)`);
+      loadCars(); // Reload to refresh the UI
+    } else {
+      alert('No cars found with empty term length and APR.');
+    }
+  };
+
   const handleExportAll = () => {
     try {
       const json = carStorage.exportAllCars();
@@ -230,6 +252,13 @@ export default function Home() {
             className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors"
           >
             Import All Cars
+          </button>
+          <button
+            onClick={handleFixEmptyTermsAndAPR}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={cars.length === 0}
+          >
+            Fix Empty Terms & APR
           </button>
         </div>
 

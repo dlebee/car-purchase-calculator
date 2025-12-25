@@ -238,7 +238,7 @@ export default function ComparePage() {
                     />
                     <div>
                       <div className="font-semibold text-gray-900 dark:text-white">
-                        {car.year} {car.make} {car.model}
+                        {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         ${car.negotiatedPrice.toLocaleString()}

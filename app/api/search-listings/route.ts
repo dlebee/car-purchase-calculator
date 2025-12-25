@@ -38,10 +38,11 @@ export async function GET(request: NextRequest) {
       const priceMax = searchParams.get('priceMax') || '999999';
       queryParams.append('retailListing.price', `${priceMin}-${priceMax}`);
     }
+    // Handle mileage range (format: "0-50000" similar to price range)
     if (searchParams.get('mileageMin') || searchParams.get('mileageMax')) {
       const mileageMin = searchParams.get('mileageMin') || '0';
       const mileageMax = searchParams.get('mileageMax') || '999999';
-      queryParams.append('retailListing.mileage', `${mileageMin}-${mileageMax}`);
+      queryParams.append('retailListing.miles', `${mileageMin}-${mileageMax}`);
     }
     if (searchParams.get('state')) queryParams.append('retailListing.state', searchParams.get('state')!);
     

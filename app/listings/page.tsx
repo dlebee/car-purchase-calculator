@@ -39,7 +39,7 @@ interface Listing {
   };
   retailListing?: {
     price: number;
-    mileage: number;
+    miles?: number; // Mileage in miles
     state?: string;
     city?: string;
     address?: string;
@@ -340,16 +340,16 @@ export default function ListingsPage() {
         year: listing.vehicle.year,
         tier: listing.vehicle.trim || '',
         dealership: listing.retailListing?.dealer || listing.retailListing?.dealership?.name || '',
-        listedPrice: listing.retailListing?.price || 0,
-        negotiatedPrice: listing.retailListing?.price || 0, // Default to listed price
-        apr: 0,
+        listedPrice: listing.retailListing?.price !== undefined ? listing.retailListing.price : 0,
+        negotiatedPrice: listing.retailListing?.price !== undefined ? listing.retailListing.price : 0, // Use listing price as both listed and negotiated
+        apr: 0.045, // Default 4.5% APR
         buyRateApr: 0,
-        termLength: 0,
+        termLength: 36, // Default 36 months
         notes: notesParts.join(' | '),
         taxRate: 0,
         tax: 0,
         creditScore: 0,
-        mileage: listing.retailListing?.mileage || 0,
+        mileage: listing.retailListing?.miles !== undefined ? listing.retailListing.miles : 0,
         downPayment: 0,
         dealerFees: 0,
         registrationFees: 0,
@@ -734,14 +734,14 @@ export default function ListingsPage() {
                       </div>
                     )}
                     
-                    {listing.retailListing?.mileage !== undefined && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Mileage:</span>
-                        <span className="text-gray-900 dark:text-white">
-                          {listing.retailListing.mileage.toLocaleString()} miles
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Miles:</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {listing.retailListing?.miles !== undefined 
+                          ? listing.retailListing.miles.toLocaleString() 
+                          : 'N/A'}
+                      </span>
+                    </div>
                     
                     {listing.vehicle.fuel && (
                       <div className="flex justify-between">
@@ -833,14 +833,14 @@ export default function ListingsPage() {
                   </div>
                 )}
                 
-                {selectedListing.retailListing?.mileage !== undefined && (
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Mileage</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {selectedListing.retailListing.mileage.toLocaleString()} miles
-                    </div>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Mileage</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {selectedListing.retailListing?.miles !== undefined 
+                      ? `${selectedListing.retailListing.miles.toLocaleString()} miles`
+                      : 'N/A'}
                   </div>
-                )}
+                </div>
               </div>
 
               <div className="space-y-3 mb-6">
@@ -884,6 +884,15 @@ export default function ListingsPage() {
                       <span className="ml-2 text-gray-900 dark:text-white font-medium capitalize">{selectedListing.vehicle.bodyType}</span>
                     </div>
                   )}
+                  
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Miles:</span>
+                    <span className="ml-2 text-gray-900 dark:text-white font-medium">
+                      {selectedListing.retailListing?.miles !== undefined 
+                        ? selectedListing.retailListing.miles.toLocaleString()
+                        : 'N/A'}
+                    </span>
+                  </div>
                   
                   <div className="col-span-2">
                     <span className="text-gray-600 dark:text-gray-400">VIN:</span>
