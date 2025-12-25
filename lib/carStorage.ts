@@ -31,11 +31,17 @@ class CarStorage {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const cars = JSON.parse(stored) as Car[];
-          // Ensure tax is calculated from taxRate if taxRate exists
+          // Ensure tax is calculated from taxRate if taxRate exists, and set defaults for new fields
           return cars.map((car) => {
             if (car.taxRate && car.taxRate > 0 && car.negotiatedPrice > 0) {
               car.tax = (car.negotiatedPrice * car.taxRate) / 100;
             }
+            // Set defaults for new optional fields
+            if (car.buyRateApr === undefined) car.buyRateApr = 0;
+            if (car.dealerFees === undefined) car.dealerFees = 0;
+            if (car.registrationFees === undefined) car.registrationFees = 0;
+            if (car.titleFees === undefined) car.titleFees = 0;
+            if (car.otherFees === undefined) car.otherFees = 0;
             return car;
           });
         }

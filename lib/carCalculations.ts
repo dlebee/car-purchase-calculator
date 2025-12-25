@@ -86,8 +86,11 @@ export function calculateCarMetrics(car: Car): CarCalculations {
   const adjustedCost = car.negotiatedPrice - car.downPayment; // Amount that needs financing (before tax)
   const financedAmount = principal; // Adjusted cost + tax (actual amount being financed)
   
-  // Total cost = down payment + financed amount + total interest
-  const totalCost = car.downPayment + financedAmount + totalInterest;
+  // Calculate total fees
+  const totalFees = (car.dealerFees || 0) + (car.registrationFees || 0) + (car.titleFees || 0) + (car.otherFees || 0);
+  
+  // Total cost = down payment + financed amount + total interest + total fees
+  const totalCost = car.downPayment + financedAmount + totalInterest + totalFees;
   
   // Calculate discount: listed price vs negotiated price
   const discount = car.listedPrice - car.negotiatedPrice;
@@ -98,6 +101,24 @@ export function calculateCarMetrics(car: Car): CarCalculations {
   const firstDayNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   const payoffDate = new Date(firstDayNextMonth);
   payoffDate.setMonth(payoffDate.getMonth() + car.termLength);
+
+  // Calculate dealer financing markup (similar to money factor in leases)
+  // If buyRateApr is provided, calculate the extra cost from dealer markup
+  let dealerFinancingMarkup = 0;
+  let dealerFinancingMarkupCost = 0;
+  if (car.buyRateApr !== undefined && car.buyRateApr > 0 && car.buyRateApr < car.apr) {
+    dealerFinancingMarkup = car.apr - car.buyRateApr; // APR markup percentage
+    // Calculate total interest at buy rate vs sell rate
+    const monthlyPaymentAtBuyRate = calculateMonthlyPayment(principal, car.buyRateApr, car.termLength);
+    const totalInterestAtBuyRate = (monthlyPaymentAtBuyRate * car.termLength) - principal;
+    dealerFinancingMarkupCost = totalInterest - totalInterestAtBuyRate;
+  }
+
+  // Total dealer fees
+  const totalDealerFees = car.dealerFees || 0;
+  
+  // Total all fees
+  const totalAllFees = (car.dealerFees || 0) + (car.registrationFees || 0) + (car.titleFees || 0) + (car.otherFees || 0);
 
   return {
     monthlyPayment,
@@ -111,6 +132,10 @@ export function calculateCarMetrics(car: Car): CarCalculations {
     discountPercent,
     payoffDate,
     paymentSchedule,
+    dealerFinancingMarkup,
+    dealerFinancingMarkupCost,
+    totalDealerFees,
+    totalAllFees,
   };
 }
 

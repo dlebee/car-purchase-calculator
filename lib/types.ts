@@ -7,7 +7,8 @@ export interface Car {
   vin: string; // Vehicle Identification Number
   listedPrice: number; // Listed/advertised price (MSRP for new, market value for used/buyouts)
   negotiatedPrice: number; // What you're actually paying (buy price)
-  apr: number; // Annual Percentage Rate as a decimal (e.g., 0.05 for 5%)
+  apr: number; // Annual Percentage Rate as a decimal (e.g., 0.05 for 5%) - This is the "sell rate" (what dealer charges you)
+  buyRateApr: number; // Buy rate APR (what lender actually offers dealer) - used to calculate dealer financing markup
   termLength: number; // Loan term in months
   notes: string;
   taxRate: number; // Tax rate as a percentage (e.g., 7.5 for 7.5%)
@@ -16,6 +17,10 @@ export interface Car {
   mileage: number;
   year: number;
   downPayment: number;
+  dealerFees: number; // Documentation fees, prep fees, etc. (often inflated or unnecessary)
+  registrationFees: number; // Registration fees
+  titleFees: number; // Title transfer fees
+  otherFees: number; // Other fees (inspection, license plate, etc.)
 }
 
 export interface PaymentScheduleEntry {
@@ -39,5 +44,10 @@ export interface CarCalculations {
   discountPercent: number; // Discount as percentage
   payoffDate: Date; // Estimated date when loan will be fully paid off (first day of next month + term length)
   paymentSchedule: PaymentScheduleEntry[];
+  // Hidden dealer costs (similar to money factor in leases)
+  dealerFinancingMarkup: number; // Extra interest paid due to dealer markup on APR (if buyRateApr is provided)
+  dealerFinancingMarkupCost: number; // Total cost of dealer financing markup over loan term
+  totalDealerFees: number; // Sum of dealer fees
+  totalAllFees: number; // Sum of all fees (dealer + registration + title + other)
 }
 

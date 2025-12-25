@@ -16,12 +16,17 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     listedPrice: '',
     negotiatedPrice: '',
     apr: '',
+    buyRateApr: '',
     termLength: '',
     taxRate: '',
     creditScore: '',
     mileage: '',
     year: new Date().getFullYear().toString(),
     downPayment: '',
+    dealerFees: '',
+    registrationFees: '',
+    titleFees: '',
+    otherFees: '',
   });
 
   const [formData, setFormData] = useState<Partial<Car>>({
@@ -33,6 +38,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     listedPrice: 0,
     negotiatedPrice: 0,
     apr: 0,
+    buyRateApr: 0,
     termLength: 0,
     notes: '',
     taxRate: 0,
@@ -41,6 +47,10 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     mileage: 0,
     year: new Date().getFullYear(),
     downPayment: 0,
+    dealerFees: 0,
+    registrationFees: 0,
+    titleFees: 0,
+    otherFees: 0,
   });
 
   useEffect(() => {
@@ -51,12 +61,17 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
         listedPrice: car.listedPrice ? car.listedPrice.toString() : '',
         negotiatedPrice: car.negotiatedPrice ? car.negotiatedPrice.toString() : '',
         apr: car.apr ? (car.apr * 100).toString() : '',
+        buyRateApr: car.buyRateApr ? (car.buyRateApr * 100).toString() : '',
         termLength: car.termLength ? car.termLength.toString() : '',
         taxRate: car.taxRate ? car.taxRate.toString() : '',
         creditScore: car.creditScore ? car.creditScore.toString() : '',
         mileage: car.mileage ? car.mileage.toString() : '',
         year: car.year ? car.year.toString() : new Date().getFullYear().toString(),
         downPayment: car.downPayment ? car.downPayment.toString() : '',
+        dealerFees: car.dealerFees ? car.dealerFees.toString() : '',
+        registrationFees: car.registrationFees ? car.registrationFees.toString() : '',
+        titleFees: car.titleFees ? car.titleFees.toString() : '',
+        otherFees: car.otherFees ? car.otherFees.toString() : '',
       });
     }
   }, [car]);
@@ -89,6 +104,10 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       if (name === 'apr') {
         return { ...prev, [name]: numValue / 100 };
       }
+      // Buy rate APR (what lender offers dealer)
+      if (name === 'buyRateApr') {
+        return { ...prev, [name]: numValue / 100 };
+      }
       // Tax rate - calculate tax amount from negotiated price
       if (name === 'taxRate') {
         const negotiatedPrice = prev.negotiatedPrice || 0;
@@ -112,7 +131,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Parse all string values to numbers
+      // Parse all string values to numbers
     const negotiatedPrice = parseFloat(stringValues.negotiatedPrice) || 0;
     const taxRate = parseFloat(stringValues.taxRate) || 0;
     const calculatedTax = (negotiatedPrice * taxRate) / 100;
@@ -127,6 +146,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       listedPrice: parseFloat(stringValues.listedPrice) || 0,
       negotiatedPrice: negotiatedPrice,
       apr: parseFloat(stringValues.apr) / 100 || 0,
+      buyRateApr: parseFloat(stringValues.buyRateApr) / 100 || 0,
       termLength: parseFloat(stringValues.termLength) || 0,
       notes: formData.notes || '',
       taxRate: taxRate,
@@ -135,6 +155,10 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       mileage: parseFloat(stringValues.mileage) || 0,
       year: parseFloat(stringValues.year) || new Date().getFullYear(),
       downPayment: parseFloat(stringValues.downPayment) || 0,
+      dealerFees: parseFloat(stringValues.dealerFees) || 0,
+      registrationFees: parseFloat(stringValues.registrationFees) || 0,
+      titleFees: parseFloat(stringValues.titleFees) || 0,
+      otherFees: parseFloat(stringValues.otherFees) || 0,
     };
     carStorage.saveCar(carToSave);
     onSave();
@@ -158,12 +182,17 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
               listedPrice: importedCar.listedPrice ? importedCar.listedPrice.toString() : '',
               negotiatedPrice: importedCar.negotiatedPrice ? importedCar.negotiatedPrice.toString() : '',
               apr: importedCar.apr ? (importedCar.apr * 100).toString() : '',
+              buyRateApr: importedCar.buyRateApr ? (importedCar.buyRateApr * 100).toString() : '',
               termLength: importedCar.termLength ? importedCar.termLength.toString() : '',
               taxRate: importedCar.taxRate ? importedCar.taxRate.toString() : '',
               creditScore: importedCar.creditScore ? importedCar.creditScore.toString() : '',
               mileage: importedCar.mileage ? importedCar.mileage.toString() : '',
               year: importedCar.year ? importedCar.year.toString() : new Date().getFullYear().toString(),
               downPayment: importedCar.downPayment ? importedCar.downPayment.toString() : '',
+              dealerFees: importedCar.dealerFees ? importedCar.dealerFees.toString() : '',
+              registrationFees: importedCar.registrationFees ? importedCar.registrationFees.toString() : '',
+              titleFees: importedCar.titleFees ? importedCar.titleFees.toString() : '',
+              otherFees: importedCar.otherFees ? importedCar.otherFees.toString() : '',
             });
           } catch (error) {
             alert('Error importing car: ' + (error as Error).message);
@@ -300,7 +329,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  APR (%)
+                  APR (%) - Sell Rate
                 </label>
                 <input
                   type="text"
@@ -311,6 +340,83 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                   placeholder="e.g., 2.5 for 2.5%"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  The APR the dealer is charging you
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Dealer Fees ($) - Optional
+                </label>
+                <input
+                  type="text"
+                  name="dealerFees"
+                  value={getStringValue('dealerFees')}
+                  onChange={handleChange}
+                  placeholder="e.g., 500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Documentation fees, prep fees, etc. (usually disclosed on contract)
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Registration Fees ($) - Optional
+                </label>
+                <input
+                  type="text"
+                  name="registrationFees"
+                  value={getStringValue('registrationFees')}
+                  onChange={handleChange}
+                  placeholder="e.g., 200"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Title Fees ($) - Optional
+                </label>
+                <input
+                  type="text"
+                  name="titleFees"
+                  value={getStringValue('titleFees')}
+                  onChange={handleChange}
+                  placeholder="e.g., 50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Other Fees ($) - Optional
+                </label>
+                <input
+                  type="text"
+                  name="otherFees"
+                  value={getStringValue('otherFees')}
+                  onChange={handleChange}
+                  placeholder="e.g., 100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Inspection, license plate, etc.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Buy Rate APR (%) - Optional (If you have outside financing)
+                </label>
+                <input
+                  type="text"
+                  name="buyRateApr"
+                  value={getStringValue('buyRateApr')}
+                  onChange={handleChange}
+                  placeholder="e.g., 2.0 for 2.0%"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Your pre-approved APR from bank/credit union (to compare against dealer financing)
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">

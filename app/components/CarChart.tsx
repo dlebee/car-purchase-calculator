@@ -165,12 +165,120 @@ export default function CarChart({ car }: CarChartProps) {
               <span className="text-gray-600 dark:text-gray-400">+ Total Interest:</span>
               <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
+            {metrics.totalAllFees > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">+ Total Fees:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalAllFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
             <div className="flex justify-between border-t-2 border-gray-400 dark:border-gray-500 pt-2 font-bold">
               <span className="text-gray-900 dark:text-white">Total Cost:</span>
               <span className="text-gray-900 dark:text-white">${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>
+        {(metrics.dealerFinancingMarkupCost > 0 || metrics.totalAllFees > 0) && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
+            <div className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+              Additional Costs Breakdown
+            </div>
+            <div className="space-y-2 text-sm">
+              {metrics.totalAllFees > 0 && (
+                <>
+                  {car.dealerFees > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Dealer Fees (Doc, Prep, etc.):
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        ${car.dealerFees.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {car.registrationFees > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Registration Fees:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        ${car.registrationFees.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {car.titleFees > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Title Fees:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        ${car.titleFees.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {car.otherFees > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Other Fees:
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        ${car.otherFees.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between border-t border-amber-300 dark:border-amber-700 pt-2">
+                    <span className="text-gray-600 dark:text-gray-400 font-semibold">
+                      Total Fees:
+                    </span>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      ${metrics.totalAllFees.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </>
+              )}
+              {metrics.dealerFinancingMarkupCost > 0 && (
+                <>
+                  <div className="flex justify-between border-t border-amber-300 dark:border-amber-700 pt-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Financing Markup (vs. Your Rate):
+                    </span>
+                    <span className="font-semibold text-amber-700 dark:text-amber-400">
+                      +{(metrics.dealerFinancingMarkup * 100).toFixed(2)}% APR
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Extra Interest (vs. Your Rate):
+                    </span>
+                    <span className="font-semibold text-amber-700 dark:text-amber-400">
+                      ${metrics.dealerFinancingMarkupCost.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Dealer APR: {(car.apr * 100).toFixed(2)}% vs. Your Rate: {((car.buyRateApr || 0) * 100).toFixed(2)}%
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
         {allTerms.length > 1 && (
           <div className="p-4 rounded-lg border bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800">
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">

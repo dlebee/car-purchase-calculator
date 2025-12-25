@@ -17,6 +17,9 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
   }
 
   const allMetrics = cars.map((car) => calculateCarMetrics(car));
+  
+  // Get baseline (best-priced car) metrics for comparison
+  const baselineMetrics = allMetrics[0]; // First car is the best-priced (lowest total cost)
 
   const fields = [
     { label: 'Year', key: 'year' as keyof Car },
@@ -91,6 +94,48 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
     return car[field.key as keyof Car];
   };
 
+  // Fields that should show differences
+  const fieldsWithDifferences = [
+    'totalCost',
+    'monthlyPaymentWithTax',
+    'totalInterest',
+    'totalTax',
+    'negotiatedPrice',
+    'listedPrice',
+    'monthlyPayment',
+    'apr',
+    'taxRate',
+    'tax',
+  ];
+
+  const getDifference = (
+    field: typeof fields[0],
+    value: any,
+    metrics: ReturnType<typeof calculateCarMetrics>
+  ): number | null => {
+    if (!fieldsWithDifferences.includes(field.key)) return null;
+    
+    let baselineValue: number;
+    if (field.calculated) {
+      if (field.key === 'monthlyPayment') baselineValue = baselineMetrics.monthlyPayment;
+      else if (field.key === 'monthlyPaymentWithTax') baselineValue = baselineMetrics.monthlyPaymentWithTax;
+      else if (field.key === 'totalInterest') baselineValue = baselineMetrics.totalInterest;
+      else if (field.key === 'totalTax') baselineValue = baselineMetrics.totalTax;
+      else if (field.key === 'totalCost') baselineValue = baselineMetrics.totalCost;
+      else return null;
+    } else {
+      if (field.key === 'negotiatedPrice') baselineValue = cars[0].negotiatedPrice;
+      else if (field.key === 'listedPrice') baselineValue = cars[0].listedPrice;
+      else if (field.key === 'apr') baselineValue = cars[0].apr;
+      else if (field.key === 'taxRate') baselineValue = cars[0].taxRate;
+      else if (field.key === 'tax') baselineValue = cars[0].tax;
+      else return null;
+    }
+    
+    const currentValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+    return currentValue - baselineValue;
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -117,12 +162,27 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
               </td>
               {cars.map((car, index) => {
                 const value = getValue(car, allMetrics[index], field);
+                const difference = getDifference(field, value, allMetrics[index]);
+                const showDifference = difference !== null && index > 0 && Math.abs(difference) > 0.01;
+                
                 return (
                   <td
                     key={car.id}
                     className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
                   >
-                    {formatValue(value, field.format)}
+                    <div className="flex flex-col">
+                      <span>{formatValue(value, field.format)}</span>
+                      {showDifference && (
+                        <span className={`text-xs mt-1 ${
+                          difference > 0 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : 'text-green-600 dark:text-green-400'
+                        }`}>
+                          {difference > 0 ? '+' : ''}{formatValue(difference, field.format)}
+                          {difference > 0 && ' more'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                 );
               })}
