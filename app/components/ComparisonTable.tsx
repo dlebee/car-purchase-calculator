@@ -41,7 +41,6 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
     { label: 'Total Cost', key: 'totalCost', format: 'currency', calculated: true },
     { label: 'Discount', key: 'discount', format: 'currency', calculated: true },
     { label: 'Discount %', key: 'discountPercent', format: 'percentage', calculated: true },
-    { label: 'Notes', key: 'notes' as keyof Car },
   ];
 
   const formatValue = (
