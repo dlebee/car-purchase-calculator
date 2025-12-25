@@ -19,6 +19,47 @@ export default function Home() {
 
   useEffect(() => {
     loadCars();
+    
+    // Check if there's a listing to add from the listings page
+    const listingData = sessionStorage.getItem('listingToAdd');
+    if (listingData) {
+      try {
+        const listing = JSON.parse(listingData);
+        // Create a partial car object from the listing
+        const partialCar: Partial<Car> = {
+          vin: listing.vin,
+          make: listing.make,
+          model: listing.model,
+          year: listing.year,
+          tier: listing.tier || '',
+          mileage: listing.mileage || 0,
+          dealership: listing.dealership || '',
+          listedPrice: listing.listedPrice || 0,
+          // Set defaults for required fields
+          id: '',
+          negotiatedPrice: listing.listedPrice || 0,
+          apr: 0,
+          buyRateApr: 0,
+          termLength: 0,
+          notes: '',
+          taxRate: 0,
+          tax: 0,
+          creditScore: 0,
+          downPayment: 0,
+          dealerFees: 0,
+          registrationFees: 0,
+          titleFees: 0,
+          otherFees: 0,
+        };
+        
+        setEditingCar(partialCar as Car);
+        setShowForm(true);
+        sessionStorage.removeItem('listingToAdd');
+      } catch (error) {
+        console.error('Error parsing listing data:', error);
+        sessionStorage.removeItem('listingToAdd');
+      }
+    }
   }, []);
 
   // Refresh selected car when cars array updates (e.g., after editing)
@@ -160,6 +201,12 @@ export default function Home() {
               className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
             >
               Visual Comparison
+            </Link>
+            <Link
+              href="/listings"
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors"
+            >
+              Search Listings
             </Link>
           </div>
         </div>

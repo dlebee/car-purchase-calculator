@@ -15,10 +15,21 @@ A Next.js application for calculating and comparing car purchase costs with deta
 
 ### Environment Variables
 
+Create a `.env.local` file in the root directory with the following variables:
+
 **For AI Analysis Feature (Optional):**
 - `OPENAI_API_KEY` - Required for the AI comparison analysis feature. Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 
+**For Vehicle Listings Search Feature (Optional):**
+- `AUTO_DEV_API_KEY` - Required for the vehicle listings search feature. Get your API key from [Auto.dev](https://auto.dev/). Sign up at [Auto.dev Register](https://auto.dev/register)
+
 **Note:** The VIN lookup feature uses the free NHTSA (National Highway Traffic Safety Administration) VIN decoder API, which requires no API key.
+
+Example `.env.local` file:
+```
+OPENAI_API_KEY=your_openai_api_key_here
+AUTO_DEV_API_KEY=your_auto_dev_api_key_here
+```
 
 ### Vercel Deployment
 
