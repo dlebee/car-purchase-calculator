@@ -50,6 +50,8 @@ export async function POST(request: NextRequest) {
           discount: metrics.discount,
           discountPercent: metrics.discountPercent,
           financedAmount: metrics.financedAmount,
+          dealerFinancingMarkupCost: metrics.dealerFinancingMarkupCost,
+          totalAllFees: metrics.totalAllFees,
         },
       };
     });
@@ -67,6 +69,15 @@ export async function POST(request: NextRequest) {
       const currentYear = new Date().getFullYear();
       return (currentYear - car.year) > 5;
     });
+
+    // Expected residual value ranges by term length (for lease analysis)
+    const expectedResidualRanges: Record<number, { expected: number; min: number; max: number }> = {
+      24: { expected: 65.0, min: 63.0, max: 67.0 },
+      36: { expected: 60.0, min: 58.0, max: 62.0 },
+      48: { expected: 53.0, min: 51.0, max: 55.0 },
+      60: { expected: 46.0, min: 44.0, max: 48.0 },
+      72: { expected: 39.0, min: 37.0, max: 41.0 },
+    };
 
     // Build comparison data for OpenAI
     const comparisonData = carsWithMetrics.map((car: any) => {
@@ -96,6 +107,9 @@ export async function POST(request: NextRequest) {
         warrantyInfo.status = 'Not specified';
       }
       
+      // Get expected residual range for this term length
+      const residualRange = expectedResidualRanges[car.termLength] || null;
+      
       return {
         vehicle: `${car.year} ${car.make} ${car.model}${car.tier ? ` ${car.tier}` : ''}`,
         year: car.year,
@@ -106,6 +120,7 @@ export async function POST(request: NextRequest) {
         negotiatedPrice: car.negotiatedPrice,
         downPayment: car.downPayment,
         apr: (car.apr * 100).toFixed(2) + '%',
+        buyRateApr: car.buyRateApr !== undefined && car.buyRateApr > 0 ? (car.buyRateApr * 100).toFixed(2) + '%' : null,
         termLength: car.termLength,
         monthlyPayment: car.metrics.monthlyPaymentWithTax,
         totalInterest: car.metrics.totalInterest,
@@ -113,7 +128,19 @@ export async function POST(request: NextRequest) {
         discount: car.metrics.discount,
         discountPercent: car.metrics.discountPercent,
         creditScore: car.creditScore,
+        dealerFees: car.dealerFees || 0,
+        registrationFees: car.registrationFees || 0,
+        titleFees: car.titleFees || 0,
+        otherFees: car.otherFees || 0,
+        totalFees: car.metrics.totalAllFees,
+        dealerFinancingMarkup: car.metrics.dealerFinancingMarkupCost || 0,
         warranty: warrantyInfo,
+        expectedResidualRange: residualRange ? {
+          expected: residualRange.expected,
+          min: residualRange.min,
+          max: residualRange.max,
+          termLength: car.termLength,
+        } : null,
       };
     });
 
@@ -180,6 +207,14 @@ export async function POST(request: NextRequest) {
               
               content += `\n            - Factor in potential repair costs after warranty expiration
             - Consider depreciation curves based on age and mileage
+            
+            DEALERSHIP TACTICS & NEGOTIATION FACTORS:
+            - APR Markup: Check if dealership offers discount but marks up APR - compare total cost, not just discount
+            - Down Payment: Evaluate if down payment is necessary or if money could be better used elsewhere
+            - Fee Analysis: Identify unnecessary fees (dealer/doc fees, prep fees, protection packages) vs legitimate fees (registration, title, taxes)
+            - Dealer Financing Markup: If buyRateApr is provided, check for dealer markup on financing - this is hidden profit
+            - Fee Negotiation: Dealer fees are often negotiable - recommend negotiating or asking dealer to reduce vehicle price instead
+            - Total Fee Reasonableness: Total fees (excluding tax) should typically be $500-$1,200 - flag excessive fees
             
             OTHER FACTORS:
             - Potential negotiation opportunities
@@ -259,7 +294,33 @@ ${JSON.stringify(comparisonData, null, 2)}`;
                 content += `\n\nADDITIONAL USER REQUEST:\n${customPrompt}\n\nPlease incorporate this into your analysis.`;
               }
 
-              content += `\n\nProvide a comprehensive analysis comparing these vehicles, highlighting the best value considering both financial and longevity factors, key differences, and recommendations. Format your response using markdown.`;
+              content += `\n\nDEALERSHIP TACTICS TO CHECK:
+              
+1. **APR Markup Tactic**: Check if any dealership offers a discount on the vehicle price but simultaneously marks up the APR. Compare the total cost (price + interest), not just the discount. A lower price with a higher APR may cost more over the loan term than a higher price with a lower APR. If buyRateApr is provided, calculate the dealer financing markup cost.
+
+2. **Down Payment Evaluation**: For purchases, down payments do provide equity, but evaluate if the down payment amount is necessary. Consider if that money could be better invested elsewhere or kept for emergencies. Only recommend higher down payments if they significantly reduce total interest costs.
+
+3. **Fee Analysis & Negotiation**:
+   - **Negotiable Fees** (often overpriced): Dealer/Doc fees ($200-$800, actual cost $50-$150), Dealer Prep fees ($200-$500, often already included), Acquisition fees ($500-$900, sometimes negotiable)
+   - **Unnecessary Fees** (should be refused): VIN Etching ($200-$400), Paint/Fabric Protection ($300-$800), Tire/Wheel Protection ($400-$1,200), Extended Warranties on new vehicles ($1,500-$4,000)
+   - **Legitimate Fees** (usually non-negotiable): Registration fees ($50-$200), Title fees ($50-$400), Sales tax
+   - **Total Fee Reasonableness**: Total fees (excluding sales tax) should typically be between $500-$1,200. Flag any vehicle with total fees significantly higher than this range.
+   - **Recommendation**: For each vehicle, identify which fees are negotiable and recommend negotiating them down or asking the dealer to reduce the vehicle price by that amount instead.
+
+4. **Dealer Financing Markup**: If buyRateApr is provided, check for dealer markup on financing. This represents hidden profit the dealer makes by marking up the interest rate above what the lender actually offers. Flag this as a negotiation opportunity - you can ask the dealer to match the buy rate or reduce the vehicle price by the markup amount.
+
+5. **Discount vs APR Trade-off**: When comparing vehicles, if one has a larger discount but higher APR, calculate the total cost difference. The vehicle with the lower total cost (price + interest + fees) is the better deal, not necessarily the one with the biggest discount.
+
+6. **Residual Value Negotiation** (for leases): Each vehicle includes an expectedResidualRange based on its termLength. Use these ranges to evaluate if the residual value is reasonable:
+   - **24 months**: Expected 65.0%, Acceptable Range: 63.0% - 67.0%
+   - **36 months**: Expected 60.0%, Acceptable Range: 58.0% - 62.0%
+   - **48 months**: Expected 53.0%, Acceptable Range: 51.0% - 55.0%
+   - **60 months**: Expected 46.0%, Acceptable Range: 44.0% - 48.0%
+   - **72 months**: Expected 39.0%, Acceptable Range: 37.0% - 41.0%
+   
+   If a vehicle's residual value is provided and falls outside the acceptable range for its term length, flag this as a negotiation opportunity. Residual values significantly above the expected range may indicate the dealer is inflating residual to make monthly payments appear lower, while recouping costs elsewhere. Residual values significantly below expected may indicate the dealer is being conservative, which could be negotiated upward.
+
+Provide a comprehensive analysis comparing these vehicles, highlighting the best value considering both financial and longevity factors, key differences, and specific recommendations for negotiating fees, financing terms, and residual values (if applicable). Include a negotiation recommendations table with columns: Vehicle, Parameter, Current Value, Target Value, Priority, and Strategy. Format your response using markdown.`;
               
               return content;
             })(),
