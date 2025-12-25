@@ -12,6 +12,7 @@ export default function ComparePage() {
   const [selectedCarIds, setSelectedCarIds] = useState<Set<string>>(new Set());
   const [downPaymentOverride, setDownPaymentOverride] = useState<string>('');
   const [termOverride, setTermOverride] = useState<string>('');
+  const [aprOverride, setAprOverride] = useState<string>('');
 
   useEffect(() => {
     loadCars();
@@ -41,6 +42,7 @@ export default function ComparePage() {
   // Overrides (PREVIEW ONLY - does not save or modify car data)
   const downPaymentOverrideValue = downPaymentOverride ? parseFloat(downPaymentOverride) || undefined : undefined;
   const termOverrideValue = termOverride ? parseFloat(termOverride) || undefined : undefined;
+  const aprOverrideValue = aprOverride ? (parseFloat(aprOverride) / 100) || undefined : undefined; // Convert percentage to decimal
   
   const selectedCars = cars
     .filter((car) => selectedCarIds.has(car.id))
@@ -51,11 +53,13 @@ export default function ComparePage() {
         ...a,
         ...(downPaymentOverrideValue !== undefined && { downPayment: downPaymentOverrideValue }),
         ...(termOverrideValue !== undefined && { termLength: termOverrideValue }),
+        ...(aprOverrideValue !== undefined && { apr: aprOverrideValue }),
       };
       const carB = {
         ...b,
         ...(downPaymentOverrideValue !== undefined && { downPayment: downPaymentOverrideValue }),
         ...(termOverrideValue !== undefined && { termLength: termOverrideValue }),
+        ...(aprOverrideValue !== undefined && { apr: aprOverrideValue }),
       };
       const metricsA = calculateCarMetrics(carA);
       const metricsB = calculateCarMetrics(carB);
@@ -114,7 +118,7 @@ export default function ComparePage() {
               <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
                 Comparison Overrides (Preview Only)
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                     Down Payment Override (Optional)
@@ -163,12 +167,36 @@ export default function ComparePage() {
                     )}
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    APR Override (%) (Optional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={aprOverride}
+                      onChange={(e) => setAprOverride(e.target.value)}
+                      placeholder="e.g., 2.5"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    {aprOverride && (
+                      <button
+                        onClick={() => setAprOverride('')}
+                        className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors text-sm"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              {(downPaymentOverride || termOverride) && (
+              {(downPaymentOverride || termOverride || aprOverride) && (
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-3 font-semibold">
                   ⚠️ Preview Mode: {downPaymentOverride && `Down payment: $${parseFloat(downPaymentOverride) || 0}`}
-                  {downPaymentOverride && termOverride && ' | '}
+                  {downPaymentOverride && (termOverride || aprOverride) && ' | '}
                   {termOverride && `Term: ${termOverride} months`}
+                  {termOverride && aprOverride && ' | '}
+                  {aprOverride && `APR: ${parseFloat(aprOverride) || 0}%`}
                   {' (this does not modify saved car data)'}
                 </p>
               )}
@@ -180,6 +208,7 @@ export default function ComparePage() {
                 cars={selectedCars} 
                 downPaymentOverride={downPaymentOverrideValue}
                 termOverride={termOverrideValue}
+                aprOverride={aprOverrideValue}
               />
             </div>
           </>

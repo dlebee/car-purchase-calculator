@@ -7,10 +7,11 @@ interface ComparisonTableProps {
   cars: Car[];
   downPaymentOverride?: number;
   termOverride?: number;
+  aprOverride?: number;
   onExportCSV?: () => void;
 }
 
-export default function ComparisonTable({ cars, downPaymentOverride, termOverride, onExportCSV }: ComparisonTableProps) {
+export default function ComparisonTable({ cars, downPaymentOverride, termOverride, aprOverride, onExportCSV }: ComparisonTableProps) {
   if (cars.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
@@ -25,6 +26,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     ...car,
     ...(downPaymentOverride !== undefined && { downPayment: downPaymentOverride }),
     ...(termOverride !== undefined && { termLength: termOverride }),
+    ...(aprOverride !== undefined && { apr: aprOverride }),
   }));
 
   const allMetrics = carsWithOverride.map((car) => calculateCarMetrics(car));
@@ -110,6 +112,9 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     if (field.key === 'termLength' && termOverride !== undefined) {
       return termOverride;
     }
+    if (field.key === 'apr' && aprOverride !== undefined) {
+      return aprOverride;
+    }
     return originalCar[field.key as keyof Car];
   };
 
@@ -149,6 +154,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       else if (field.key === 'taxRate') baselineValue = baselineCar.taxRate;
       else if (field.key === 'tax') baselineValue = baselineCar.tax;
       else if (field.key === 'downPayment') baselineValue = baselineCar.downPayment;
+      else if (field.key === 'apr') baselineValue = baselineCar.apr;
       else return null;
     }
     
@@ -276,7 +282,8 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
                 const showDifference = difference !== null && index > 0 && Math.abs(difference) > 0.01;
                 const isOverridden = 
                   (field.key === 'downPayment' && downPaymentOverride !== undefined) ||
-                  (field.key === 'termLength' && termOverride !== undefined);
+                  (field.key === 'termLength' && termOverride !== undefined) ||
+                  (field.key === 'apr' && aprOverride !== undefined);
                 
                 return (
                   <td
