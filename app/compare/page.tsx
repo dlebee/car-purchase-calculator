@@ -19,6 +19,8 @@ export default function ComparePage() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState<string>('');
+  const [followUpPrompt, setFollowUpPrompt] = useState<string>('');
+  const [isFollowUpAnalyzing, setIsFollowUpAnalyzing] = useState(false);
 
   useEffect(() => {
     loadCars();
@@ -90,6 +92,44 @@ export default function ComparePage() {
       setAnalysisError((error as Error).message);
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleFollowUpQuestion = async () => {
+    if (!analysis || !followUpPrompt.trim()) {
+      setAnalysisError('Please enter a follow-up question');
+      return;
+    }
+
+    setIsFollowUpAnalyzing(true);
+    setAnalysisError(null);
+
+    try {
+      const response = await fetch('/api/follow-up-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          previousAnalysis: analysis,
+          question: followUpPrompt.trim(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to process follow-up question');
+      }
+
+      if (result.success && result.analysis) {
+        setAnalysis(result.analysis);
+        setFollowUpPrompt(''); // Clear the follow-up input
+      }
+    } catch (error) {
+      setAnalysisError((error as Error).message);
+    } finally {
+      setIsFollowUpAnalyzing(false);
     }
   };
 
@@ -356,6 +396,53 @@ export default function ComparePage() {
                     >
                       {analysis}
                     </ReactMarkdown>
+                  </div>
+                  
+                  {/* Follow-up question section */}
+                  <div className="mt-6 pt-6 border-t border-indigo-200 dark:border-indigo-800">
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Ask a follow-up question about this analysis
+                    </label>
+                    <div className="flex gap-2">
+                      <textarea
+                        value={followUpPrompt}
+                        onChange={(e) => setFollowUpPrompt(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                            e.preventDefault();
+                            handleFollowUpQuestion();
+                          }
+                        }}
+                        placeholder="e.g., Can you elaborate on the warranty concerns? Or, What about resale value?"
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y min-h-[60px]"
+                        rows={2}
+                      />
+                      <button
+                        onClick={handleFollowUpQuestion}
+                        disabled={isFollowUpAnalyzing || !followUpPrompt.trim()}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 self-end"
+                      >
+                        {isFollowUpAnalyzing ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                            Ask
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Ask questions about the analysis above. Press Cmd/Ctrl+Enter to submit.
+                    </p>
                   </div>
                 </div>
               )}
