@@ -486,15 +486,19 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   Term Length (months)
                 </label>
-                <input
-                  type="text"
+                <select
                   name="termLength"
                   value={getStringValue('termLength')}
                   onChange={handleChange}
                   required
-                  placeholder="e.g., 48"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
+                >
+                  <option value="">Select term length</option>
+                  <option value="36">36 months (3 years)</option>
+                  <option value="48">48 months (4 years)</option>
+                  <option value="60">60 months (5 years)</option>
+                  <option value="72">72 months (6 years)</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">

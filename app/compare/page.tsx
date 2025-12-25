@@ -10,6 +10,8 @@ import Link from 'next/link';
 export default function ComparePage() {
   const [cars, setCars] = useState<Car[]>([]);
   const [selectedCarIds, setSelectedCarIds] = useState<Set<string>>(new Set());
+  const [downPaymentOverride, setDownPaymentOverride] = useState<string>('');
+  const [termOverride, setTermOverride] = useState<string>('');
 
   useEffect(() => {
     loadCars();
@@ -36,12 +38,27 @@ export default function ComparePage() {
     });
   };
 
+  // Overrides (PREVIEW ONLY - does not save or modify car data)
+  const downPaymentOverrideValue = downPaymentOverride ? parseFloat(downPaymentOverride) || undefined : undefined;
+  const termOverrideValue = termOverride ? parseFloat(termOverride) || undefined : undefined;
+  
   const selectedCars = cars
     .filter((car) => selectedCarIds.has(car.id))
     .sort((a, b) => {
       // Sort by total cost (lowest first) - best priced car on the left
-      const metricsA = calculateCarMetrics(a);
-      const metricsB = calculateCarMetrics(b);
+      // Use overrides if provided (creates new objects, doesn't modify originals)
+      const carA = {
+        ...a,
+        ...(downPaymentOverrideValue !== undefined && { downPayment: downPaymentOverrideValue }),
+        ...(termOverrideValue !== undefined && { termLength: termOverrideValue }),
+      };
+      const carB = {
+        ...b,
+        ...(downPaymentOverrideValue !== undefined && { downPayment: downPaymentOverrideValue }),
+        ...(termOverrideValue !== undefined && { termLength: termOverrideValue }),
+      };
+      const metricsA = calculateCarMetrics(carA);
+      const metricsB = calculateCarMetrics(carB);
       return metricsA.totalCost - metricsB.totalCost;
     });
 
@@ -93,9 +110,77 @@ export default function ComparePage() {
               </div>
             </div>
 
+            <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+              <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
+                Comparison Overrides (Preview Only)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Down Payment Override (Optional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={downPaymentOverride}
+                      onChange={(e) => setDownPaymentOverride(e.target.value)}
+                      placeholder="e.g., 5000"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    {downPaymentOverride && (
+                      <button
+                        onClick={() => setDownPaymentOverride('')}
+                        className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors text-sm"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Term Length Override (Optional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={termOverride}
+                      onChange={(e) => setTermOverride(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                      <option value="">Use actual terms</option>
+                      <option value="36">36 months (3 years)</option>
+                      <option value="48">48 months (4 years)</option>
+                      <option value="60">60 months (5 years)</option>
+                      <option value="72">72 months (6 years)</option>
+                    </select>
+                    {termOverride && (
+                      <button
+                        onClick={() => setTermOverride('')}
+                        className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors text-sm"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {(downPaymentOverride || termOverride) && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-3 font-semibold">
+                  ⚠️ Preview Mode: {downPaymentOverride && `Down payment: $${parseFloat(downPaymentOverride) || 0}`}
+                  {downPaymentOverride && termOverride && ' | '}
+                  {termOverride && `Term: ${termOverride} months`}
+                  {' (this does not modify saved car data)'}
+                </p>
+              )}
+            </div>
+
             <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Comparison</h2>
-              <ComparisonTable cars={selectedCars} />
+              <ComparisonTable 
+                cars={selectedCars} 
+                downPaymentOverride={downPaymentOverrideValue}
+                termOverride={termOverrideValue}
+              />
             </div>
           </>
         )}

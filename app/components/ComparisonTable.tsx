@@ -5,9 +5,11 @@ import { calculateCarMetrics } from '@/lib/carCalculations';
 
 interface ComparisonTableProps {
   cars: Car[];
+  downPaymentOverride?: number;
+  termOverride?: number;
 }
 
-export default function ComparisonTable({ cars }: ComparisonTableProps) {
+export default function ComparisonTable({ cars, downPaymentOverride, termOverride }: ComparisonTableProps) {
   if (cars.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
@@ -16,10 +18,19 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
     );
   }
 
-  const allMetrics = cars.map((car) => calculateCarMetrics(car));
+  // Apply overrides if provided (PREVIEW ONLY - does not modify saved car data)
+  // Creates new objects with spread operator to avoid mutating original cars
+  const carsWithOverride = cars.map((car) => ({
+    ...car,
+    ...(downPaymentOverride !== undefined && { downPayment: downPaymentOverride }),
+    ...(termOverride !== undefined && { termLength: termOverride }),
+  }));
+
+  const allMetrics = carsWithOverride.map((car) => calculateCarMetrics(car));
   
   // Get baseline (best-priced car) metrics for comparison
   const baselineMetrics = allMetrics[0]; // First car is the best-priced (lowest total cost)
+  const baselineCar = carsWithOverride[0]; // Use car with override for baseline comparisons
 
   const fields = [
     { label: 'Year', key: 'year' as keyof Car },
@@ -81,7 +92,7 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
     return String(value);
   };
 
-  const getValue = (car: Car, metrics: ReturnType<typeof calculateCarMetrics>, field: typeof fields[0]): any => {
+  const getValue = (car: Car, metrics: ReturnType<typeof calculateCarMetrics>, field: typeof fields[0], originalCar: Car): any => {
     if (field.calculated) {
       if (field.key === 'monthlyPayment') return metrics.monthlyPayment;
       if (field.key === 'monthlyPaymentWithTax') return metrics.monthlyPaymentWithTax;
@@ -91,7 +102,14 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
       if (field.key === 'discount') return metrics.discount;
       if (field.key === 'discountPercent') return metrics.discountPercent / 100;
     }
-    return car[field.key as keyof Car];
+    // For overrides, show override value if active, otherwise show original
+    if (field.key === 'downPayment' && downPaymentOverride !== undefined) {
+      return downPaymentOverride;
+    }
+    if (field.key === 'termLength' && termOverride !== undefined) {
+      return termOverride;
+    }
+    return originalCar[field.key as keyof Car];
   };
 
   // Fields that should show differences
@@ -124,11 +142,12 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
       else if (field.key === 'totalCost') baselineValue = baselineMetrics.totalCost;
       else return null;
     } else {
-      if (field.key === 'negotiatedPrice') baselineValue = cars[0].negotiatedPrice;
-      else if (field.key === 'listedPrice') baselineValue = cars[0].listedPrice;
-      else if (field.key === 'apr') baselineValue = cars[0].apr;
-      else if (field.key === 'taxRate') baselineValue = cars[0].taxRate;
-      else if (field.key === 'tax') baselineValue = cars[0].tax;
+      if (field.key === 'negotiatedPrice') baselineValue = baselineCar.negotiatedPrice;
+      else if (field.key === 'listedPrice') baselineValue = baselineCar.listedPrice;
+      else if (field.key === 'apr') baselineValue = baselineCar.apr;
+      else if (field.key === 'taxRate') baselineValue = baselineCar.taxRate;
+      else if (field.key === 'tax') baselineValue = baselineCar.tax;
+      else if (field.key === 'downPayment') baselineValue = baselineCar.downPayment;
       else return null;
     }
     
@@ -161,9 +180,14 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
                 {field.label}
               </td>
               {cars.map((car, index) => {
-                const value = getValue(car, allMetrics[index], field);
+                const carWithOverride = carsWithOverride[index];
+                const originalCar = cars[index];
+                const value = getValue(carWithOverride, allMetrics[index], field, originalCar);
                 const difference = getDifference(field, value, allMetrics[index]);
                 const showDifference = difference !== null && index > 0 && Math.abs(difference) > 0.01;
+                const isOverridden = 
+                  (field.key === 'downPayment' && downPaymentOverride !== undefined) ||
+                  (field.key === 'termLength' && termOverride !== undefined);
                 
                 return (
                   <td
@@ -171,7 +195,10 @@ export default function ComparisonTable({ cars }: ComparisonTableProps) {
                     className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
                   >
                     <div className="flex flex-col">
-                      <span>{formatValue(value, field.format)}</span>
+                      <span className={isOverridden ? 'text-blue-600 dark:text-blue-400 font-semibold' : ''}>
+                        {formatValue(value, field.format)}
+                        {isOverridden && <span className="text-xs ml-1">(override)</span>}
+                      </span>
                       {showDifference && (
                         <span className={`text-xs mt-1 ${
                           difference > 0 
