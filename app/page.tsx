@@ -126,12 +126,20 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-center mb-2 text-gray-900 dark:text-white">
             Car Purchase Calculator
           </h1>
-          <Link
-            href="/compare"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-          >
-            Compare Cars
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/compare"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            >
+              Compare Cars
+            </Link>
+            <Link
+              href="/compare-visual"
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
+            >
+              Visual Comparison
+            </Link>
+          </div>
         </div>
 
         <div className="mb-6 flex gap-4">

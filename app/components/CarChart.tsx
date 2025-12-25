@@ -465,7 +465,7 @@ export default function CarChart({ car }: CarChartProps) {
           </div>
         )}
       </div>
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <h4 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Cumulative Interest Paid</h4>
           <ResponsiveContainer width="100%" height={400}>
