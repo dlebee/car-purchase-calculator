@@ -23,9 +23,25 @@ const FLORIDA_FEE_RANGES = {
 
 interface CarChartProps {
   car: Car | null;
+  downPaymentOverride?: number;
+  aprOverride?: number;
+  termOverride?: number;
+  aprOverrideString?: string; // Raw string value for display/editing
+  onDownPaymentOverrideChange?: (value: string) => void;
+  onAprOverrideChange?: (value: string) => void;
+  onTermOverrideChange?: (value: string) => void;
 }
 
-export default function CarChart({ car }: CarChartProps) {
+export default function CarChart({ 
+  car, 
+  downPaymentOverride, 
+  aprOverride, 
+  termOverride,
+  aprOverrideString,
+  onDownPaymentOverrideChange,
+  onAprOverrideChange,
+  onTermOverrideChange
+}: CarChartProps) {
   if (!car) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
@@ -34,21 +50,31 @@ export default function CarChart({ car }: CarChartProps) {
     );
   }
 
-  const metrics = calculateCarMetrics(car);
+  // Apply overrides if provided (PREVIEW ONLY - does not modify saved car data)
+  const carWithOverride = {
+    ...car,
+    ...(downPaymentOverride !== undefined && { downPayment: downPaymentOverride }),
+    ...(aprOverride !== undefined && { apr: aprOverride }),
+    ...(termOverride !== undefined && { termLength: termOverride }),
+  };
+
+  const hasOverrides = downPaymentOverride !== undefined || aprOverride !== undefined || termOverride !== undefined;
+
+  const metrics = calculateCarMetrics(carWithOverride);
   
   // Calculate start date (first day of next month)
   const today = new Date();
   const firstDayNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   
   // Generate comparison terms (e.g., if selected is 48, show 36, 48, 60, 72)
-  const selectedTerm = car.termLength;
+  const selectedTerm = carWithOverride.termLength;
   const availableTerms = [36, 48, 60, 72];
   const comparisonTerms = availableTerms.filter(term => term !== selectedTerm).slice(0, 3);
   const allTerms = [selectedTerm, ...comparisonTerms].sort((a, b) => a - b);
   
-  // Calculate metrics for all terms (including selected)
+  // Calculate metrics for all terms (including selected) - use overrides for base values
   const allMetrics = allTerms.map(term => {
-    const carWithTerm = { ...car, termLength: term };
+    const carWithTerm = { ...carWithOverride, termLength: term };
     return {
       term,
       metrics: calculateCarMetrics(carWithTerm),
@@ -87,7 +113,7 @@ export default function CarChart({ car }: CarChartProps) {
   }
 
   const totalCost = metrics.totalCost;
-  const payoffTime = car.termLength;
+  const payoffTime = carWithOverride.termLength;
   const payoffTimeYears = (payoffTime / 12).toFixed(1);
   const payoffDateStr = metrics.payoffDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
@@ -159,31 +185,69 @@ export default function CarChart({ car }: CarChartProps) {
           </div>
         </div>
       )}
-      <div className="mb-4 space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Payoff Time</div>
-            <div className="text-xl font-bold text-blue-700 dark:text-blue-400">
+      {hasOverrides && (
+        <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3 flex-1">
+              <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                ⚠️ Preview Mode: Overrides Active
+              </h4>
+              <div className="mt-2 text-sm text-blue-700 dark:text-blue-400">
+                <ul className="list-disc list-inside space-y-1">
+                  {downPaymentOverride !== undefined && (
+                    <li>
+                      <strong>Down Payment:</strong> ${downPaymentOverride.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (original: ${car.downPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                    </li>
+                  )}
+                  {aprOverride !== undefined && (
+                    <li>
+                      <strong>APR:</strong> {(aprOverride * 100).toFixed(2)}% (original: {(car.apr * 100).toFixed(2)}%)
+                    </li>
+                  )}
+                  {termOverride !== undefined && (
+                    <li>
+                      <strong>Term Length:</strong> {termOverride} months (original: {car.termLength} months)
+                    </li>
+                  )}
+                </ul>
+                <p className="mt-2 text-xs italic">
+                  All calculations below reflect these override values. This does not modify saved car data.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="mb-4 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-2 rounded-lg">
+            <div className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">Payoff Time</div>
+            <div className="text-xs font-bold text-blue-700 dark:text-blue-400">
               {payoffTime} months
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <div className="text-[9px] text-gray-600 dark:text-gray-400 mt-0.5">
               ({payoffTimeYears} years)
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
+            <div className="text-[9px] text-gray-600 dark:text-gray-400 mt-1 pt-1 border-t border-blue-200 dark:border-blue-700">
               Paid off by: <span className="font-semibold">{payoffDateStr}</span>
             </div>
           </div>
           {metrics.discount !== 0 && (
-            <div className={`p-4 rounded-lg border ${
+            <div className={`p-2 rounded-lg border ${
               metrics.discount >= 0
                 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                 : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
             }`}>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              <div className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">
                 Discount (Listed vs Negotiated)
               </div>
-              <div className="flex items-baseline gap-2">
-                <div className={`text-xl font-bold ${
+              <div className="flex items-baseline gap-1">
+                <div className={`text-xs font-bold ${
                   metrics.discount >= 0
                     ? 'text-green-700 dark:text-green-400'
                     : 'text-red-700 dark:text-red-400'
@@ -193,12 +257,12 @@ export default function CarChart({ car }: CarChartProps) {
                     maximumFractionDigits: 2,
                   })}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-[9px] text-gray-600 dark:text-gray-400">
                   ({metrics.discountPercent >= 0 ? '-' : '+'}{Math.abs(metrics.discountPercent).toFixed(1)}%)
                 </div>
               </div>
               {metrics.discount < 0 && (
-                <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
+                <div className="text-[9px] text-gray-600 dark:text-gray-400 mt-1 italic">
                   Paying more than listed price
                 </div>
               )}
@@ -206,16 +270,107 @@ export default function CarChart({ car }: CarChartProps) {
           )}
         </div>
         <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
-          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Cost Breakdown</div>
-          <div className="space-y-2 text-sm">
+          {/* Override Controls - positioned right above cost breakdown */}
+          <div className="mb-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div>
+                <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">
+                  Down Payment
+                </label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={downPaymentOverride !== undefined ? downPaymentOverride.toString() : ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        onDownPaymentOverrideChange?.('');
+                      } else {
+                        const numVal = parseFloat(val);
+                        if (!isNaN(numVal)) {
+                          onDownPaymentOverrideChange?.(val);
+                        }
+                      }
+                    }}
+                    placeholder={`$${car.downPayment.toLocaleString()}`}
+                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  {downPaymentOverride !== undefined && (
+                    <button
+                      onClick={() => onDownPaymentOverrideChange?.('')}
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-xs"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">
+                  APR (%)
+                </label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={aprOverrideString !== undefined ? aprOverrideString : ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Allow empty, numbers, and decimal points (including partial decimals like "2." or ".5")
+                      if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                        onAprOverrideChange?.(val);
+                      }
+                    }}
+                    placeholder={`${(car.apr * 100).toFixed(2)}%`}
+                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  {aprOverride !== undefined && (
+                    <button
+                      onClick={() => onAprOverrideChange?.('')}
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-xs"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">
+                  Term Length
+                </label>
+                <div className="flex items-center gap-1">
+                  <select
+                    value={termOverride !== undefined ? termOverride.toString() : ''}
+                    onChange={(e) => onTermOverrideChange?.(e.target.value)}
+                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="">{car.termLength}m</option>
+                    <option value="36">36m</option>
+                    <option value="48">48m</option>
+                    <option value="60">60m</option>
+                    <option value="72">72m</option>
+                  </select>
+                  {termOverride !== undefined && (
+                    <button
+                      onClick={() => onTermOverrideChange?.('')}
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-xs"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Cost Breakdown</div>
+          <div className="space-y-1 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">Negotiated Price:</span>
               <span className="font-semibold text-gray-900 dark:text-white">${car.negotiatedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
-            {car.downPayment > 0 && (
+            {carWithOverride.downPayment > 0 && (
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">- Down Payment:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">${car.downPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="font-semibold text-gray-900 dark:text-white">${carWithOverride.downPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-1">
@@ -249,11 +404,11 @@ export default function CarChart({ car }: CarChartProps) {
           </div>
         </div>
         {(metrics.dealerFinancingMarkupCost > 0 || metrics.totalAllFees > 0) && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
-            <div className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-2 rounded-lg">
+            <div className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">
               Additional Costs Breakdown
             </div>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1 text-xs">
               {metrics.totalAllFees > 0 && (
                 <>
                   {car.dealerFees > 0 && (
@@ -262,7 +417,7 @@ export default function CarChart({ car }: CarChartProps) {
                         <span className="text-gray-600 dark:text-gray-400">
                           Dealer Fees (Doc, Prep, etc.):
                         </span>
-                        <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-semibold">
+                        <span className="ml-2 text-[9px] text-green-600 dark:text-green-400 font-semibold">
                           ✓ Negotiable
                         </span>
                       </div>
@@ -280,7 +435,7 @@ export default function CarChart({ car }: CarChartProps) {
                         <span className="text-gray-600 dark:text-gray-400">
                           Registration Fees:
                         </span>
-                        <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
+                        <span className="ml-2 text-[9px] text-orange-600 dark:text-orange-400">
                           ⚠ Usually mandatory
                         </span>
                       </div>
@@ -298,7 +453,7 @@ export default function CarChart({ car }: CarChartProps) {
                         <span className="text-gray-600 dark:text-gray-400">
                           Title Fees:
                         </span>
-                        <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">
+                        <span className="ml-2 text-[9px] text-orange-600 dark:text-orange-400">
                           ⚠ Usually mandatory
                         </span>
                       </div>
@@ -316,7 +471,7 @@ export default function CarChart({ car }: CarChartProps) {
                         <span className="text-gray-600 dark:text-gray-400">
                           Other Fees:
                         </span>
-                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="ml-2 text-[9px] text-gray-500 dark:text-gray-400">
                           Depends on type
                         </span>
                       </div>
@@ -387,22 +542,36 @@ export default function CarChart({ car }: CarChartProps) {
               {allTerms.map((term) => {
                 const termMetrics = allMetrics.find(m => m.term === term)?.metrics;
                 const isSelected = term === selectedTerm;
+                const isOverrideActive = termOverride !== undefined && term === termOverride;
                 if (!termMetrics) return null;
                 
                 return (
                   <div
                     key={term}
-                    className={`p-3 rounded-lg border ${
-                      isSelected
+                    onClick={() => {
+                      // Toggle override: if clicking the same term, clear override; otherwise set it
+                      if (isOverrideActive) {
+                        onTermOverrideChange?.('');
+                      } else {
+                        onTermOverrideChange?.(term.toString());
+                      }
+                    }}
+                    className={`p-2 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                      isOverrideActive
+                        ? 'bg-blue-100 dark:bg-blue-800/40 border-blue-400 dark:border-blue-500 ring-2 ring-blue-300 dark:ring-blue-600'
+                        : isSelected
                         ? 'bg-indigo-100 dark:bg-indigo-800/40 border-indigo-300 dark:border-indigo-600'
-                        : 'bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-700'
+                        : 'bg-white dark:bg-gray-700 border-indigo-200 dark:border-indigo-700 hover:border-indigo-300 dark:hover:border-indigo-600'
                     }`}
                   >
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {term} months {isSelected && <span className="font-semibold">(Selected)</span>}
+                    <div className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">
+                      {term} months {isOverrideActive && <span className="font-semibold text-blue-600 dark:text-blue-400">(Override)</span>}
+                      {!isOverrideActive && isSelected && <span className="font-semibold">(Selected)</span>}
                     </div>
-                    <div className={`text-lg font-bold ${
-                      isSelected
+                    <div className={`text-sm font-bold ${
+                      isOverrideActive
+                        ? 'text-blue-700 dark:text-blue-300'
+                        : isSelected
                         ? 'text-indigo-700 dark:text-indigo-300'
                         : 'text-gray-900 dark:text-white'
                     }`}>
@@ -411,7 +580,7 @@ export default function CarChart({ car }: CarChartProps) {
                         maximumFractionDigits: 2,
                       })}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
                       ${termMetrics.monthlyPayment.toFixed(2)}/mo
                     </div>
                   </div>
@@ -421,10 +590,10 @@ export default function CarChart({ car }: CarChartProps) {
           </div>
         )}
       </div>
-      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg">
-        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Monthly Payment</div>
-        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-          <span className="font-semibold text-gray-900 dark:text-white text-lg">${metrics.monthlyPayment.toFixed(2)}</span>
+      <div className="mb-4 p-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Monthly Payment</div>
+        <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+          <span className="font-semibold text-gray-900 dark:text-white text-sm">${metrics.monthlyPayment.toFixed(2)}</span>
           {' per month'}
         </div>
         <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
@@ -440,9 +609,9 @@ export default function CarChart({ car }: CarChartProps) {
               • No tax included
             </div>
           )}
-          {car.downPayment > 0 && (
+          {carWithOverride.downPayment > 0 && (
             <div className="italic">
-              • Down payment (${car.downPayment.toLocaleString()}) is <span className="font-semibold">not included</span> in monthly payments
+              • Down payment (${carWithOverride.downPayment.toLocaleString()}) is <span className="font-semibold">not included</span> in monthly payments
             </div>
           )}
         </div>

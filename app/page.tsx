@@ -13,6 +13,9 @@ export default function Home() {
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
   const [editingCar, setEditingCar] = useState<Car | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
+  const [downPaymentOverride, setDownPaymentOverride] = useState<string>('');
+  const [aprOverride, setAprOverride] = useState<string>('');
+  const [termOverride, setTermOverride] = useState<string>('');
 
   useEffect(() => {
     loadCars();
@@ -28,9 +31,28 @@ export default function Home() {
     }
   }, [cars, selectedCar]);
 
+  // Persist selected car ID to localStorage
+  useEffect(() => {
+    if (selectedCar) {
+      localStorage.setItem('selectedCarId', selectedCar.id);
+    }
+  }, [selectedCar?.id]);
+
   const loadCars = () => {
     const allCars = carStorage.getAllCars();
     setCars(allCars);
+    
+    // Try to restore previously selected car from localStorage
+    const savedCarId = localStorage.getItem('selectedCarId');
+    if (savedCarId && allCars.length > 0) {
+      const savedCar = allCars.find((c) => c.id === savedCarId);
+      if (savedCar) {
+        setSelectedCar(savedCar);
+        return;
+      }
+    }
+    
+    // Fallback to first car if no saved selection or saved car not found
     if (allCars.length > 0 && !selectedCar) {
       setSelectedCar(allCars[0]);
     }
@@ -192,20 +214,28 @@ export default function Home() {
             </div>
 
             {selectedCar && (
-              <div className="mb-6">
-                <CarCard
+              <>
+                <div className="mb-6">
+                  <CarCard
+                    car={selectedCar}
+                    onEdit={() => handleEditCar(selectedCar)}
+                    onDelete={() => handleDeleteCar(selectedCar.id)}
+                    onSelect={() => {}}
+                    isSelected={false}
+                  />
+                </div>
+                <CarChart 
                   car={selectedCar}
-                  onEdit={() => handleEditCar(selectedCar)}
-                  onDelete={() => handleDeleteCar(selectedCar.id)}
-                  onSelect={() => {}}
-                  isSelected={false}
+                  downPaymentOverride={downPaymentOverride ? parseFloat(downPaymentOverride) || undefined : undefined}
+                  aprOverride={aprOverride ? (parseFloat(aprOverride) / 100) || undefined : undefined}
+                  termOverride={termOverride ? parseFloat(termOverride) || undefined : undefined}
+                  aprOverrideString={aprOverride}
+                  onDownPaymentOverrideChange={(value) => setDownPaymentOverride(value)}
+                  onAprOverrideChange={(value) => setAprOverride(value)}
+                  onTermOverrideChange={(value) => setTermOverride(value)}
                 />
-              </div>
+              </>
             )}
-
-            <div>
-              <CarChart car={selectedCar} />
-            </div>
           </>
         )}
       </div>
