@@ -42,6 +42,7 @@ class CarStorage {
             if (car.registrationFees === undefined) car.registrationFees = 0;
             if (car.titleFees === undefined) car.titleFees = 0;
             if (car.otherFees === undefined) car.otherFees = 0;
+            // Warranty fields are optional, no defaults needed
             return car;
           });
         }

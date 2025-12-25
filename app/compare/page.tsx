@@ -6,6 +6,7 @@ import carStorage from '@/lib/carStorage';
 import { calculateCarMetrics } from '@/lib/carCalculations';
 import ComparisonTable from '../components/ComparisonTable';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
 
 export default function ComparePage() {
   const [cars, setCars] = useState<Car[]>([]);
@@ -13,6 +14,10 @@ export default function ComparePage() {
   const [downPaymentOverride, setDownPaymentOverride] = useState<string>('');
   const [termOverride, setTermOverride] = useState<string>('');
   const [aprOverride, setAprOverride] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [customPrompt, setCustomPrompt] = useState<string>('');
 
   useEffect(() => {
     loadCars();
@@ -37,6 +42,54 @@ export default function ComparePage() {
       }
       return newSet;
     });
+    // Clear analysis when selection changes
+    setAnalysis(null);
+    setAnalysisError(null);
+  };
+
+  const handleAnalyzeComparison = async () => {
+    if (selectedCars.length === 0) {
+      setAnalysisError('Please select at least one car to analyze');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysis(null);
+    setAnalysisError(null);
+
+    try {
+      const overrides = {
+        downPayment: downPaymentOverrideValue,
+        termLength: termOverrideValue,
+        apr: aprOverrideValue,
+      };
+
+      const response = await fetch('/api/analyze-comparison', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cars: selectedCars,
+          overrides: Object.values(overrides).some(v => v !== undefined) ? overrides : null,
+          customPrompt: customPrompt.trim() || undefined,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to analyze comparison');
+      }
+
+      if (result.success && result.analysis) {
+        setAnalysis(result.analysis);
+      }
+    } catch (error) {
+      setAnalysisError((error as Error).message);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   // Overrides (PREVIEW ONLY - does not save or modify car data)
@@ -203,13 +256,123 @@ export default function ComparePage() {
             </div>
 
             <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Comparison</h2>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Comparison</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Custom Analysis Prompt (Optional)
+                  </label>
+                  <textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="e.g., Focus on reliability and long-term maintenance costs, or compare resale values..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y min-h-[80px]"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    Add specific questions or focus areas for the AI analysis. Leave empty for standard analysis.
+                  </p>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleAnalyzeComparison}
+                    disabled={isAnalyzing || selectedCars.length === 0}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        AI Analysis
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
               <ComparisonTable 
                 cars={selectedCars} 
                 downPaymentOverride={downPaymentOverrideValue}
                 termOverride={termOverrideValue}
                 aprOverride={aprOverrideValue}
               />
+              
+              {analysis && (
+                <div className="mt-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      AI Comparison Analysis
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setAnalysis(null);
+                        setAnalysisError(null);
+                      }}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-indigo-900 dark:prose-headings:text-indigo-300 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-ul:text-gray-700 dark:prose-ul:text-gray-300 prose-li:text-gray-700 dark:prose-li:text-gray-300">
+                    <ReactMarkdown
+                      components={{
+                        h1: ({node, ...props}) => <h1 className="text-2xl font-bold mb-4 mt-6 first:mt-0" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-xl font-semibold mb-3 mt-5 first:mt-0" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-lg font-semibold mb-2 mt-4 first:mt-0" {...props} />,
+                        p: ({node, ...props}) => <p className="mb-4 leading-relaxed" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-disc list-inside mb-4 space-y-2" {...props} />,
+                        ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-4 space-y-2" {...props} />,
+                        li: ({node, ...props}) => <li className="ml-4" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
+                        em: ({node, ...props}) => <em className="italic" {...props} />,
+                        code: ({node, ...props}) => <code className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-sm font-mono" {...props} />,
+                        blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-indigo-400 pl-4 italic my-4" {...props} />,
+                      }}
+                    >
+                      {analysis}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              )}
+              
+              {analysisError && (
+                <div className="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                        Analysis Error
+                      </h4>
+                      <p className="text-sm text-red-700 dark:text-red-400">
+                        {analysisError}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setAnalysisError(null)}
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 ml-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}

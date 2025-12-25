@@ -193,11 +193,32 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
   };
 
   const exportToCSV = () => {
+    // Check if any overrides are active
+    const hasOverrides = downPaymentOverride !== undefined || termOverride !== undefined || aprOverride !== undefined;
+    
     // Create CSV header
     const headers = ['Field', ...cars.map(car => `${car.year} ${car.make} ${car.model}`)];
     
     // Create CSV rows
     const rows: string[][] = [];
+    
+    // Add override information as first rows if overrides are active
+    if (hasOverrides) {
+      rows.push(['', '']); // Empty row for spacing
+      rows.push(['COMPARISON OVERRIDES (Applied to all vehicles)', '']);
+      if (downPaymentOverride !== undefined) {
+        rows.push(['Down Payment Override', formatValueForCSV(downPaymentOverride, 'currency')]);
+      }
+      if (termOverride !== undefined) {
+        rows.push(['Term Length Override (months)', formatValueForCSV(termOverride, 'number')]);
+      }
+      if (aprOverride !== undefined) {
+        rows.push(['APR Override (%)', formatValueForCSV(aprOverride * 100, 'percentage')]);
+      }
+      rows.push(['', '']); // Empty row for spacing
+      rows.push(['NOTE: All financial metrics below are calculated using the standardized overrides above', '']);
+      rows.push(['', '']); // Empty row for spacing
+    }
     
     fields.forEach((field) => {
       const row: string[] = [field.label];
@@ -214,6 +235,15 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
           cellValue += ` (${difference > 0 ? '+' : ''}${diffStr})`;
         }
         
+        // Add override indicator for overridden fields
+        const isOverridden = 
+          (field.key === 'downPayment' && downPaymentOverride !== undefined) ||
+          (field.key === 'termLength' && termOverride !== undefined) ||
+          (field.key === 'apr' && aprOverride !== undefined);
+        if (isOverridden) {
+          cellValue += ' [OVERRIDE]';
+        }
+        
         row.push(cellValue);
       });
       rows.push(row);
@@ -222,7 +252,13 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     // Convert to CSV string
     const csvContent = [
       headers.map(h => h.includes(',') ? `"${h.replace(/"/g, '""')}"` : h).join(','),
-      ...rows.map(row => row.join(','))
+      ...rows.map(row => {
+        // Handle rows with fewer columns than headers
+        while (row.length < headers.length) {
+          row.push('');
+        }
+        return row.join(',');
+      })
     ].join('\n');
     
     // Create download

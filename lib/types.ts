@@ -21,6 +21,10 @@ export interface Car {
   registrationFees: number; // Registration fees
   titleFees: number; // Title transfer fees
   otherFees: number; // Other fees (inspection, license plate, etc.)
+  warrantyType?: string; // e.g., "Manufacturer", "Extended", "CPO", "None"
+  warrantyRemainingMonths?: number; // Remaining warranty coverage in months
+  warrantyRemainingMiles?: number; // Remaining warranty coverage in miles
+  warrantyTransferrable?: boolean; // Whether warranty transfers to new owner
 }
 
 export interface PaymentScheduleEntry {
