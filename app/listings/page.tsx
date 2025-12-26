@@ -36,6 +36,8 @@ interface Listing {
     fuel?: string;
     trim?: string;
     bodyType?: string;
+    baseInvoice?: number; // Base invoice price (at vehicle level)
+    baseMsrp?: number; // Base MSRP (at vehicle level)
   };
   retailListing?: {
     price: number;
@@ -52,6 +54,13 @@ interface Listing {
 }
 
 export default function ListingsPage() {
+  // Helper function to calculate discount percentage from a base price
+  const calculateDiscountPercent = (basePrice: number, retailPrice: number): number | null => {
+    if (!basePrice || basePrice === 0 || !retailPrice || retailPrice === 0) return null;
+    const discount = ((basePrice - retailPrice) / basePrice) * 100;
+    return discount; // Can be positive (discount) or negative (markup)
+  };
+
   // Load filters from localStorage on mount
   const loadFiltersFromStorage = () => {
     if (typeof window !== 'undefined') {
@@ -340,8 +349,10 @@ export default function ListingsPage() {
         year: listing.vehicle.year,
         tier: listing.vehicle.trim || '',
         dealership: listing.retailListing?.dealer || listing.retailListing?.dealership?.name || '',
-        listedPrice: listing.retailListing?.price !== undefined ? listing.retailListing.price : 0,
-        negotiatedPrice: listing.retailListing?.price !== undefined ? listing.retailListing.price : 0, // Use listing price as both listed and negotiated
+        listedPrice: listing.vehicle?.baseMsrp ?? listing.vehicle?.baseInvoice ?? (listing.retailListing?.price ?? 0), // Use MSRP or Invoice, fallback to retail price
+        negotiatedPrice: listing.retailListing?.price !== undefined 
+          ? listing.retailListing.price 
+          : 0, // Use retail listing price as the price we pay
         apr: 0.045, // Default 4.5% APR
         buyRateApr: 0,
         termLength: 36, // Default 36 months
@@ -725,14 +736,54 @@ export default function ListingsPage() {
                   </div>
                   
                   <div className="space-y-2 text-sm">
-                    {listing.retailListing?.price && (
-                      <div className="flex justify-between">
+                    {listing.vehicle?.baseMsrp ? (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-400">MSRP:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500 dark:text-gray-400 line-through text-xs">
+                            ${listing.vehicle.baseMsrp.toLocaleString()}
+                          </span>
+                          {listing.retailListing?.price && calculateDiscountPercent(listing.vehicle.baseMsrp, listing.retailListing.price) !== null && (
+                            <span className={`text-xs font-semibold ${
+                              calculateDiscountPercent(listing.vehicle.baseMsrp, listing.retailListing.price)! >= 0
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              ({calculateDiscountPercent(listing.vehicle.baseMsrp, listing.retailListing.price)! >= 0 ? '-' : '+'}
+                              {Math.abs(calculateDiscountPercent(listing.vehicle.baseMsrp, listing.retailListing.price)!).toFixed(1)}%)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    {listing.vehicle?.baseInvoice ? (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-400">Invoice:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500 dark:text-gray-400 line-through text-xs">
+                            ${listing.vehicle.baseInvoice.toLocaleString()}
+                          </span>
+                          {listing.retailListing?.price && calculateDiscountPercent(listing.vehicle.baseInvoice, listing.retailListing.price) !== null && (
+                            <span className={`text-xs font-semibold ${
+                              calculateDiscountPercent(listing.vehicle.baseInvoice, listing.retailListing.price)! >= 0
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              ({calculateDiscountPercent(listing.vehicle.baseInvoice, listing.retailListing.price)! >= 0 ? '-' : '+'}
+                              {Math.abs(calculateDiscountPercent(listing.vehicle.baseInvoice, listing.retailListing.price)!).toFixed(1)}%)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    {listing.retailListing?.price ? (
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-600 dark:text-gray-400">Price:</span>
                         <span className="font-semibold text-gray-900 dark:text-white">
                           ${listing.retailListing.price.toLocaleString()}
                         </span>
                       </div>
-                    )}
+                    ) : null}
                     
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Miles:</span>
@@ -823,16 +874,51 @@ export default function ListingsPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {selectedListing.retailListing?.price && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {selectedListing.vehicle?.baseMsrp && (
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">MSRP</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white line-through">
+                      ${selectedListing.vehicle.baseMsrp.toLocaleString()}
+                    </div>
+                    {selectedListing.retailListing?.price && calculateDiscountPercent(selectedListing.vehicle.baseMsrp, selectedListing.retailListing.price) !== null && (
+                      <div className={`text-sm font-semibold mt-1 ${
+                        calculateDiscountPercent(selectedListing.vehicle.baseMsrp, selectedListing.retailListing.price)! >= 0
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {calculateDiscountPercent(selectedListing.vehicle.baseMsrp, selectedListing.retailListing.price)! >= 0 ? 'Discount' : 'Markup'}: {calculateDiscountPercent(selectedListing.vehicle.baseMsrp, selectedListing.retailListing.price)! >= 0 ? '-' : '+'}
+                        {Math.abs(calculateDiscountPercent(selectedListing.vehicle.baseMsrp, selectedListing.retailListing.price)!).toFixed(1)}%
+                      </div>
+                    )}
+                  </div>
+                )}
+                {selectedListing.vehicle?.baseInvoice && (
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Invoice</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white line-through">
+                      ${selectedListing.vehicle.baseInvoice.toLocaleString()}
+                    </div>
+                    {selectedListing.retailListing?.price && calculateDiscountPercent(selectedListing.vehicle.baseInvoice, selectedListing.retailListing.price) !== null && (
+                      <div className={`text-sm font-semibold mt-1 ${
+                        calculateDiscountPercent(selectedListing.vehicle.baseInvoice, selectedListing.retailListing.price)! >= 0
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {calculateDiscountPercent(selectedListing.vehicle.baseInvoice, selectedListing.retailListing.price)! >= 0 ? 'Discount' : 'Markup'}: {calculateDiscountPercent(selectedListing.vehicle.baseInvoice, selectedListing.retailListing.price)! >= 0 ? '-' : '+'}
+                        {Math.abs(calculateDiscountPercent(selectedListing.vehicle.baseInvoice, selectedListing.retailListing.price)!).toFixed(1)}%
+                      </div>
+                    )}
+                  </div>
+                )}
+                {selectedListing.retailListing?.price && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Price</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       ${selectedListing.retailListing.price.toLocaleString()}
                     </div>
                   </div>
                 )}
-                
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Mileage</div>
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">
