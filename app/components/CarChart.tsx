@@ -394,118 +394,181 @@ export default function CarChart({
             </div>
           </div>
         </div>
-        {(metrics.dealerFinancingMarkupCost > 0 || metrics.totalAllFees > 0) && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-2 rounded-lg">
-            <div className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">
-              Additional Costs Breakdown
-            </div>
-            <div className="space-y-1 text-xs">
-              {metrics.totalAllFees > 0 && (
-                <>
-                  {car.dealerFees > 0 && (
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Dealer Fees (Doc, Prep, etc.):
-                        </span>
-                        <span className="ml-2 text-[9px] text-green-600 dark:text-green-400 font-semibold">
-                          ✓ Negotiable
-                        </span>
-                      </div>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        ${car.dealerFees.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  )}
-                  {car.governmentFees > 0 && (
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Government Fees:
-                        </span>
-                        <span className="ml-2 text-[9px] text-orange-600 dark:text-orange-400">
-                          ⚠ Usually mandatory
-                        </span>
-                      </div>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        ${car.governmentFees.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  )}
-                  {car.otherFees > 0 && (
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Other Fees:
-                        </span>
-                        <span className="ml-2 text-[9px] text-gray-500 dark:text-gray-400">
-                          Depends on type
-                        </span>
-                      </div>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        ${car.otherFees.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between border-t border-amber-300 dark:border-amber-700 pt-2">
-                    <span className="text-gray-600 dark:text-gray-400 font-semibold">
-                      Total Fees:
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      ${metrics.totalAllFees.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                  {car.dealerFees > 0 && (
-                    <div className="mt-3 pt-3 border-t border-amber-300 dark:border-amber-700">
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        <strong>Fee Negotiation Tip:</strong> Dealer fees (doc/prep) are often negotiable. 
-                        Ask to have them waived or reduced, especially if you're paying cash or have your own financing.
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-              {metrics.dealerFinancingMarkupCost > 0 && (
-                <>
-                  <div className="flex justify-between border-t border-amber-300 dark:border-amber-700 pt-2">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Financing Markup (vs. Your Rate):
-                    </span>
-                    <span className="font-semibold text-amber-700 dark:text-amber-400">
-                      +{(metrics.dealerFinancingMarkup * 100).toFixed(2)}% APR
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Extra Interest (vs. Your Rate):
-                    </span>
-                    <span className="font-semibold text-amber-700 dark:text-amber-400">
-                      ${metrics.dealerFinancingMarkupCost.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Dealer APR: {(car.apr * 100).toFixed(2)}% vs. Your Rate: {((car.buyRateApr || 0) * 100).toFixed(2)}%
-                  </p>
-                </>
-              )}
-            </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-2 rounded-lg">
+          <div className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-2">
+            Fees Breakdown & Recommendations
           </div>
-        )}
+          
+          {/* Recommendations Section */}
+          {(car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.recommendedMax || 
+            car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.recommendedMax || 
+            car.otherFees > FLORIDA_FEE_RANGES.otherFees.recommendedMax) && (
+            <div className="mb-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-[10px]">
+              <p className="font-semibold text-red-700 dark:text-red-300 mb-1">⚠️ Fee Recommendations:</p>
+              <ul className="space-y-0.5 text-red-600 dark:text-red-400">
+                {car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.recommendedMax && (
+                  <li>• <strong>Dealer Fees:</strong> ${car.dealerFees.toFixed(2)} exceeds recommended max of ${FLORIDA_FEE_RANGES.dealerFees.recommendedMax.toFixed(2)} - <span className="font-semibold">Try to negotiate this down!</span></li>
+                )}
+                {car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.recommendedMax && (
+                  <li>• <strong>Government Fees:</strong> ${car.governmentFees.toFixed(2)} exceeds recommended max of ${FLORIDA_FEE_RANGES.governmentFees.recommendedMax.toFixed(2)} - Verify amounts aren't inflated</li>
+                )}
+                {car.otherFees > FLORIDA_FEE_RANGES.otherFees.recommendedMax && (
+                  <li>• <strong>Other Fees:</strong> ${car.otherFees.toFixed(2)} exceeds recommended max of ${FLORIDA_FEE_RANGES.otherFees.recommendedMax.toFixed(2)} - Many are optional add-ons</li>
+                )}
+              </ul>
+            </div>
+          )}
+          
+          {/* Fees Breakdown */}
+          <div className="space-y-1 text-xs">
+            {/* Dealer Fees */}
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Dealer Fees:
+                </span>
+                <span className={`ml-2 text-[9px] font-semibold ${
+                  car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.recommendedMax
+                    ? 'text-red-600 dark:text-red-400'
+                    : car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.typical
+                    ? 'text-yellow-600 dark:text-yellow-400'
+                    : 'text-green-600 dark:text-green-400'
+                }`}>
+                  {car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.recommendedMax
+                    ? '⚠️ High - Negotiate!'
+                    : car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.typical
+                    ? '⚠️ Above typical'
+                    : '✓ Negotiable'}
+                </span>
+              </div>
+              <span className={`font-semibold ${
+                car.dealerFees > FLORIDA_FEE_RANGES.dealerFees.recommendedMax
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                ${car.dealerFees.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+            
+            {/* Government Fees */}
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Government Fees:
+                </span>
+                <span className={`ml-2 text-[9px] font-semibold ${
+                  car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.recommendedMax
+                    ? 'text-red-600 dark:text-red-400'
+                    : car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.typical
+                    ? 'text-yellow-600 dark:text-yellow-400'
+                    : 'text-orange-600 dark:text-orange-400'
+                }`}>
+                  {car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.recommendedMax
+                    ? '⚠️ High - Verify!'
+                    : car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.typical
+                    ? '⚠️ Above typical'
+                    : '⚠️ Usually mandatory'}
+                </span>
+              </div>
+              <span className={`font-semibold ${
+                car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.recommendedMax
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                ${car.governmentFees.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+            
+            {/* Other Fees */}
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Other Fees:
+                </span>
+                <span className={`ml-2 text-[9px] font-semibold ${
+                  car.otherFees > FLORIDA_FEE_RANGES.otherFees.recommendedMax
+                    ? 'text-red-600 dark:text-red-400'
+                    : car.otherFees > FLORIDA_FEE_RANGES.otherFees.typical
+                    ? 'text-yellow-600 dark:text-yellow-400'
+                    : 'text-gray-500 dark:text-gray-400'
+                }`}>
+                  {car.otherFees > FLORIDA_FEE_RANGES.otherFees.recommendedMax
+                    ? '⚠️ High - Many optional!'
+                    : car.otherFees > FLORIDA_FEE_RANGES.otherFees.typical
+                    ? '⚠️ Above typical'
+                    : 'Depends on type'}
+                </span>
+              </div>
+              <span className={`font-semibold ${
+                car.otherFees > FLORIDA_FEE_RANGES.otherFees.recommendedMax
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                ${car.otherFees.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+            
+            {/* Total Fees */}
+            <div className="flex justify-between border-t border-amber-300 dark:border-amber-700 pt-2 mt-1">
+              <span className="text-gray-600 dark:text-gray-400 font-semibold">
+                Total Fees:
+              </span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                ${metrics.totalAllFees.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+            
+            {/* Negotiation Tip */}
+            {(car.dealerFees > 0 || car.otherFees > 0) && (
+              <div className="mt-3 pt-3 border-t border-amber-300 dark:border-amber-700">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <strong>💡 Negotiation Tip:</strong> Dealer fees and many "other fees" (VIN Etch, Battery Fee, etc.) are often negotiable or can be waived entirely. 
+                  Always ask "Can you waive these fees?" - Many dealers will reduce or eliminate them to close the deal.
+                </p>
+              </div>
+            )}
+          </div>
+          
+          {/* Dealer Financing Markup */}
+          {metrics.dealerFinancingMarkupCost > 0 && (
+            <>
+              <div className="flex justify-between border-t border-amber-300 dark:border-amber-700 pt-2 mt-2">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Financing Markup (vs. Your Rate):
+                </span>
+                <span className="font-semibold text-amber-700 dark:text-amber-400">
+                  +{(metrics.dealerFinancingMarkup * 100).toFixed(2)}% APR
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Extra Interest (vs. Your Rate):
+                </span>
+                <span className="font-semibold text-amber-700 dark:text-amber-400">
+                  ${metrics.dealerFinancingMarkupCost.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Dealer APR: {(car.apr * 100).toFixed(2)}% vs. Your Rate: {((car.buyRateApr || 0) * 100).toFixed(2)}%
+              </p>
+            </>
+          )}
+        </div>
         {allTerms.length > 1 && (
           <div className="p-4 rounded-lg border bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800">
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">

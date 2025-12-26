@@ -65,6 +65,12 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     { label: 'Tax Amount', key: 'tax' as keyof Car, format: 'currency' },
     { label: 'Total Tax', key: 'totalTax', format: 'currency', calculated: true },
     
+    // Fees Breakdown
+    { label: 'Dealer Fees', key: 'dealerFees' as keyof Car, format: 'currency' },
+    { label: 'Government Fees', key: 'governmentFees' as keyof Car, format: 'currency' },
+    { label: 'Other Fees', key: 'otherFees' as keyof Car, format: 'currency' },
+    { label: 'Total Fees', key: 'totalAllFees', format: 'currency', calculated: true },
+    
     // Financing Terms
     { label: 'APR', key: 'apr' as keyof Car, format: 'percentage' },
     { label: 'Term Length (months)', key: 'termLength' as keyof Car },
@@ -126,6 +132,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       if (field.key === 'totalInterest') return metrics.totalInterest;
       if (field.key === 'averageAnnualInterest') return metrics.averageAnnualInterest;
       if (field.key === 'totalTax') return metrics.totalTax;
+      if (field.key === 'totalAllFees') return metrics.totalAllFees;
       if (field.key === 'totalCost') return metrics.totalCost;
       if (field.key === 'discount') return metrics.discount;
       if (field.key === 'discountPercent') return metrics.discountPercent / 100;
@@ -150,6 +157,10 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     'totalInterest',
     'averageAnnualInterest',
     'totalTax',
+    'totalAllFees',
+    'dealerFees',
+    'governmentFees',
+    'otherFees',
     'negotiatedPrice',
     'listedPrice',
     'monthlyPayment',
@@ -172,6 +183,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       else if (field.key === 'totalInterest') baselineValue = baselineMetrics.totalInterest;
       else if (field.key === 'averageAnnualInterest') baselineValue = baselineMetrics.averageAnnualInterest;
       else if (field.key === 'totalTax') baselineValue = baselineMetrics.totalTax;
+      else if (field.key === 'totalAllFees') baselineValue = baselineMetrics.totalAllFees;
       else if (field.key === 'totalCost') baselineValue = baselineMetrics.totalCost;
       else return null;
     } else {
@@ -181,6 +193,9 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       else if (field.key === 'taxRate') baselineValue = baselineCar.taxRate;
       else if (field.key === 'tax') baselineValue = baselineCar.tax;
       else if (field.key === 'downPayment') baselineValue = baselineCar.downPayment;
+      else if (field.key === 'dealerFees') baselineValue = baselineCar.dealerFees;
+      else if (field.key === 'governmentFees') baselineValue = baselineCar.governmentFees;
+      else if (field.key === 'otherFees') baselineValue = baselineCar.otherFees;
       else if (field.key === 'apr') baselineValue = baselineCar.apr;
       else return null;
     }
