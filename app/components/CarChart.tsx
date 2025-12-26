@@ -580,8 +580,11 @@ export default function CarChart({
                         maximumFractionDigits: 2,
                       })}
                     </div>
-                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                      ${termMetrics.monthlyPayment.toFixed(2)}/mo
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 flex items-center justify-between gap-2">
+                      <span>${termMetrics.monthlyPayment.toFixed(2)}/mo</span>
+                      <span className="text-gray-400 dark:text-gray-500">
+                        ${termMetrics.averageAnnualInterest.toFixed(2)}/yr
+                      </span>
                     </div>
                   </div>
                 );

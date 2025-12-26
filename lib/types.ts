@@ -12,7 +12,8 @@ export interface Car {
   termLength: number; // Loan term in months
   notes: string;
   taxRate: number; // Tax rate as a percentage (e.g., 7.5 for 7.5%)
-  tax: number; // Calculated tax amount (negotiatedPrice * taxRate / 100)
+  flatTaxFee: number; // Flat tax fee (e.g., $100 in Florida)
+  tax: number; // Calculated tax amount (negotiatedPrice * taxRate / 100 + flatTaxFee)
   creditScore: number; // FICO Auto Score 8
   mileage: number;
   year: number;

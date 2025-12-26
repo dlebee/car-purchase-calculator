@@ -21,7 +21,9 @@ export function calculatePaymentSchedule(car: Car): PaymentScheduleEntry[] {
   // Ensure tax is calculated from taxRate if taxRate exists
   let calculatedTax = car.tax;
   if (car.taxRate && car.taxRate > 0 && car.negotiatedPrice > 0) {
-    calculatedTax = (car.negotiatedPrice * car.taxRate) / 100;
+    calculatedTax = (car.negotiatedPrice * car.taxRate) / 100 + (car.flatTaxFee || 0);
+  } else if (car.flatTaxFee && car.flatTaxFee > 0) {
+    calculatedTax = car.flatTaxFee;
   }
   
   const principal = car.negotiatedPrice + calculatedTax - car.downPayment;
@@ -58,7 +60,9 @@ export function calculateCarMetrics(car: Car): CarCalculations {
   // Ensure tax is calculated from taxRate if taxRate exists
   let calculatedTax = car.tax;
   if (car.taxRate && car.taxRate > 0 && car.negotiatedPrice > 0) {
-    calculatedTax = (car.negotiatedPrice * car.taxRate) / 100;
+    calculatedTax = (car.negotiatedPrice * car.taxRate) / 100 + (car.flatTaxFee || 0);
+  } else if (car.flatTaxFee && car.flatTaxFee > 0) {
+    calculatedTax = car.flatTaxFee;
   }
   
   const principal = car.negotiatedPrice + calculatedTax - car.downPayment;

@@ -74,6 +74,14 @@ export default function CarCard({
             </span>
           </div>
         )}
+        {car.flatTaxFee > 0 && (
+          <div>
+            <span className="text-gray-600 dark:text-gray-400">Flat Tax Fee:</span>{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              ${car.flatTaxFee.toFixed(2)}
+            </span>
+          </div>
+        )}
         {metrics.totalTax > 0 && (
           <div>
             <span className="text-gray-600 dark:text-gray-400">Tax:</span>{' '}

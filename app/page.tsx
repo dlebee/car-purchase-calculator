@@ -43,6 +43,7 @@ export default function Home() {
           termLength: 0,
           notes: '',
           taxRate: 0,
+          flatTaxFee: 0,
           tax: 0,
           creditScore: 0,
           downPayment: 0,

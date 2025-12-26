@@ -37,31 +37,51 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
   const baselineCar = carsWithOverride[0]; // Use car with override for baseline comparisons
 
   const fields = [
+    // Basic Vehicle Info
     { label: 'Year', key: 'year' as keyof Car },
     { label: 'Make', key: 'make' as keyof Car },
     { label: 'Model', key: 'model' as keyof Car },
     { label: 'Tier', key: 'tier' as keyof Car },
     { label: 'VIN', key: 'vin' as keyof Car },
+    { label: 'Mileage', key: 'mileage' as keyof Car, format: 'number' },
+    
+    // Dealership Info
     { label: 'Dealership', key: 'dealership' as keyof Car },
     { label: 'Rep Name', key: 'repName' as keyof Car },
     { label: 'Rep Phone', key: 'repPhone' as keyof Car },
+    
+    // Pricing Breakdown
     { label: 'Listed Price', key: 'listedPrice' as keyof Car, format: 'currency' },
     { label: 'Negotiated Price', key: 'negotiatedPrice' as keyof Car, format: 'currency' },
-    { label: 'Monthly Payment w/ Tax', key: 'monthlyPaymentWithTax', format: 'currency', calculated: true },
-    { label: 'APR', key: 'apr' as keyof Car, format: 'percentage' },
-    { label: 'Term Length (months)', key: 'termLength' as keyof Car },
-    { label: 'Tax Rate (%)', key: 'taxRate' as keyof Car, format: 'percentage' },
-    { label: 'Tax Amount', key: 'tax' as keyof Car, format: 'currency' },
-    { label: 'Credit Score', key: 'creditScore' as keyof Car },
-    { label: 'Mileage', key: 'mileage' as keyof Car, format: 'number' },
-    { label: 'Down Payment', key: 'downPayment' as keyof Car, format: 'currency' },
-    { label: 'Monthly Payment', key: 'monthlyPayment', format: 'currency', calculated: true },
-    { label: 'Total Interest', key: 'totalInterest', format: 'currency', calculated: true },
-    { label: 'Avg Annual Interest', key: 'averageAnnualInterest', format: 'currency', calculated: true },
-    { label: 'Total Tax', key: 'totalTax', format: 'currency', calculated: true },
-    { label: 'Total Cost', key: 'totalCost', format: 'currency', calculated: true },
     { label: 'Discount', key: 'discount', format: 'currency', calculated: true },
     { label: 'Discount %', key: 'discountPercent', format: 'percentage', calculated: true },
+    
+    // Down Payment
+    { label: 'Down Payment', key: 'downPayment' as keyof Car, format: 'currency' },
+    
+    // Tax Breakdown
+    { label: 'Tax Rate (%)', key: 'taxRate' as keyof Car, format: 'percentage' },
+    { label: 'Flat Tax Fee', key: 'flatTaxFee' as keyof Car, format: 'currency' },
+    { label: 'Tax Amount', key: 'tax' as keyof Car, format: 'currency' },
+    { label: 'Total Tax', key: 'totalTax', format: 'currency', calculated: true },
+    
+    // Financing Terms
+    { label: 'APR', key: 'apr' as keyof Car, format: 'percentage' },
+    { label: 'Term Length (months)', key: 'termLength' as keyof Car },
+    
+    // Monthly Payments
+    { label: 'Monthly Payment', key: 'monthlyPayment', format: 'currency', calculated: true },
+    { label: 'Monthly Payment w/ Tax', key: 'monthlyPaymentWithTax', format: 'currency', calculated: true },
+    
+    // Interest Breakdown
+    { label: 'Total Interest Paid', key: 'totalInterest', format: 'currency', calculated: true },
+    { label: 'Avg Annual Interest', key: 'averageAnnualInterest', format: 'currency', calculated: true },
+    
+    // Totals
+    { label: 'Total Cost', key: 'totalCost', format: 'currency', calculated: true },
+    
+    // Additional Info
+    { label: 'Credit Score', key: 'creditScore' as keyof Car },
   ];
 
   const formatValue = (
@@ -314,9 +334,16 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider min-w-[200px] bg-gray-50 dark:bg-gray-700"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span>
-                      {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
-                    </span>
+                    <div className="flex flex-col">
+                      <span>
+                        {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
+                      </span>
+                      {car.dealership && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          {car.dealership}
+                        </span>
+                      )}
+                    </div>
                     {onDeleteCar && (
                       <button
                         onClick={(e) => {

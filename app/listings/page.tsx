@@ -381,10 +381,11 @@ export default function ListingsPage() {
         negotiatedPrice: retailPrice, // Use retail listing price as the price we pay
         apr: 0.045, // Default 4.5% APR
         buyRateApr: 0,
-        termLength: 36, // Default 36 months
+        termLength: 60, // Default 60 months
         notes: notesParts.join(' | '),
-        taxRate: 0,
-        tax: 0,
+        taxRate: 6, // Default 6% tax rate
+        flatTaxFee: 0,
+        tax: (retailPrice * 6) / 100, // Calculate tax: 6% of negotiated price
         creditScore: 0,
         mileage: listing.retailListing?.miles !== undefined ? listing.retailListing.miles : 0,
         downPayment: 0,

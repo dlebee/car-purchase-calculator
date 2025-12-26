@@ -32,6 +32,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     buyRateApr: '',
     termLength: '',
     taxRate: '',
+    flatTaxFee: '',
     creditScore: '',
     mileage: '',
     year: new Date().getFullYear().toString(),
@@ -55,6 +56,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     termLength: 0,
     notes: '',
     taxRate: 0,
+    flatTaxFee: 0,
     tax: 0,
     creditScore: 0,
     mileage: 0,
@@ -77,6 +79,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
         buyRateApr: car.buyRateApr ? (car.buyRateApr * 100).toString() : '',
         termLength: car.termLength ? car.termLength.toString() : '',
         taxRate: car.taxRate ? car.taxRate.toString() : '',
+        flatTaxFee: car.flatTaxFee ? car.flatTaxFee.toString() : '',
         creditScore: car.creditScore ? car.creditScore.toString() : '',
         mileage: car.mileage ? car.mileage.toString() : '',
         year: car.year ? car.year.toString() : new Date().getFullYear().toString(),
@@ -125,16 +128,25 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       if (name === 'buyRateApr') {
         return { ...prev, [name]: numValue / 100 };
       }
-      // Tax rate - calculate tax amount from negotiated price
+      // Tax rate - calculate tax amount from negotiated price + flat tax fee
       if (name === 'taxRate') {
         const negotiatedPrice = prev.negotiatedPrice || 0;
-        const taxAmount = (negotiatedPrice * numValue) / 100;
+        const flatTaxFee = prev.flatTaxFee || 0;
+        const taxAmount = (negotiatedPrice * numValue) / 100 + flatTaxFee;
         return { ...prev, taxRate: numValue, tax: taxAmount };
+      }
+      // Flat tax fee - recalculate tax amount
+      if (name === 'flatTaxFee') {
+        const negotiatedPrice = prev.negotiatedPrice || 0;
+        const taxRate = prev.taxRate || 0;
+        const taxAmount = (negotiatedPrice * taxRate) / 100 + numValue;
+        return { ...prev, flatTaxFee: numValue, tax: taxAmount };
       }
       // When negotiated price changes, recalculate tax if tax rate is set
       if (name === 'negotiatedPrice') {
         const taxRate = prev.taxRate || 0;
-        const taxAmount = (numValue * taxRate) / 100;
+        const flatTaxFee = prev.flatTaxFee || 0;
+        const taxAmount = (numValue * taxRate) / 100 + flatTaxFee;
         return { ...prev, negotiatedPrice: numValue, tax: taxAmount };
       }
       // All other numeric fields
@@ -151,7 +163,8 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       // Parse all string values to numbers
     const negotiatedPrice = parseFloat(stringValues.negotiatedPrice) || 0;
     const taxRate = parseFloat(stringValues.taxRate) || 0;
-    const calculatedTax = (negotiatedPrice * taxRate) / 100;
+    const flatTaxFee = parseFloat(stringValues.flatTaxFee) || 0;
+    const calculatedTax = (negotiatedPrice * taxRate) / 100 + flatTaxFee;
     
     const carToSave: Car = {
       id: car?.id || '',
@@ -167,6 +180,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       termLength: parseFloat(stringValues.termLength) || 0,
       notes: formData.notes || '',
       taxRate: taxRate,
+      flatTaxFee: flatTaxFee,
       tax: calculatedTax,
       creditScore: parseFloat(stringValues.creditScore) || 0,
       mileage: parseFloat(stringValues.mileage) || 0,
@@ -205,6 +219,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
               buyRateApr: importedCar.buyRateApr ? (importedCar.buyRateApr * 100).toString() : '',
               termLength: importedCar.termLength ? importedCar.termLength.toString() : '',
               taxRate: importedCar.taxRate ? importedCar.taxRate.toString() : '',
+              flatTaxFee: importedCar.flatTaxFee ? importedCar.flatTaxFee.toString() : '',
               creditScore: importedCar.creditScore ? importedCar.creditScore.toString() : '',
               mileage: importedCar.mileage ? importedCar.mileage.toString() : '',
               year: importedCar.year ? importedCar.year.toString() : new Date().getFullYear().toString(),
@@ -661,12 +676,36 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                   name="taxRate"
                   value={getStringValue('taxRate')}
                   onChange={handleChange}
-                  placeholder="e.g., 7.5 for 7.5%"
+                  placeholder="e.g., 6.0 for 6%"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Percentage tax rate (e.g., 6% in Florida)
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Flat Tax Fee ($)
+                </label>
+                <input
+                  type="text"
+                  name="flatTaxFee"
+                  value={getStringValue('flatTaxFee')}
+                  onChange={handleChange}
+                  placeholder="e.g., 100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Flat tax fee added to percentage tax (e.g., $100 in Florida)
+                </p>
                 {formData.taxRate && formData.taxRate > 0 && formData.negotiatedPrice && formData.negotiatedPrice > 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Tax amount: ${((formData.negotiatedPrice * formData.taxRate) / 100).toFixed(2)}
+                    Total tax: ${((formData.negotiatedPrice * formData.taxRate) / 100 + (formData.flatTaxFee || 0)).toFixed(2)}
+                    {formData.flatTaxFee && formData.flatTaxFee > 0 && (
+                      <span className="ml-1">
+                        ({(formData.negotiatedPrice * formData.taxRate / 100).toFixed(2)} + {formData.flatTaxFee.toFixed(2)})
+                      </span>
+                    )}
                   </p>
                 )}
               </div>
