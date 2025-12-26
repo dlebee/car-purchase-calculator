@@ -39,8 +39,7 @@ class CarStorage {
             // Set defaults for new optional fields
             if (car.buyRateApr === undefined) car.buyRateApr = 0;
             if (car.dealerFees === undefined) car.dealerFees = 0;
-            if (car.registrationFees === undefined) car.registrationFees = 0;
-            if (car.titleFees === undefined) car.titleFees = 0;
+            if (car.governmentFees === undefined) car.governmentFees = 0;
             if (car.otherFees === undefined) car.otherFees = 0;
             // Warranty fields are optional, no defaults needed
             return car;

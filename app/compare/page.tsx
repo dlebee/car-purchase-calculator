@@ -106,7 +106,7 @@ export default function ComparePage() {
   const handleSelectByMake = (make: string) => {
     setSelectedCarIds((prev) => {
       const newSet = new Set(prev);
-      const carsFromMake = cars.filter(c => c.make === make);
+      const carsFromMake = cars.filter(c => c.make.toLowerCase() === make.toLowerCase());
       const allSelected = carsFromMake.every(car => prev.has(car.id));
       
       if (allSelected) {
@@ -293,8 +293,9 @@ export default function ComparePage() {
               </div>
               
               {/* Group cars by make */}
-              {Array.from(new Set(cars.map(c => c.make))).sort().map((make) => {
-                const carsFromMake = cars.filter(c => c.make === make);
+              {Array.from(new Set(cars.map(c => c.make.toLowerCase()))).sort().map((makeLower) => {
+                const make = cars.find(c => c.make.toLowerCase() === makeLower)?.make || makeLower;
+                const carsFromMake = cars.filter(c => c.make.toLowerCase() === makeLower);
                 return (
                   <div key={make} className="mb-4">
                     <div className="flex items-center gap-2 mb-2">

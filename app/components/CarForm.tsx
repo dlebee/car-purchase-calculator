@@ -6,10 +6,9 @@ import carStorage from '@/lib/carStorage';
 
 // Florida fee defaults and expected ranges
 const FLORIDA_FEE_RANGES = {
-  dealerFees: { min: 600, max: 999, typical: 950 },
-  registrationFees: { min: 14.50, max: 257.50, typical: 225 }, // $225 initial + up to $32.50 annual
-  titleFees: { min: 75.75, max: 85.75, typical: 75.75 }, // Electronic title
-  otherFees: { min: 0, max: 100, typical: 28 }, // License plate ~$28
+  dealerFees: { min: 0, max: 1500, typical: 999, recommendedMax: 1200 }, // Dealer Service Fee, Pre-Delivery, Electronic Filing, etc.
+  governmentFees: { min: 200, max: 600, typical: 400, recommendedMax: 500 }, // DMV, License, Registration, Title Transfer
+  otherFees: { min: 0, max: 500, typical: 100, recommendedMax: 400 }, // VIN Etch, Battery, Tire, Agency, etc.
 };
 
 interface CarFormProps {
@@ -38,8 +37,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     year: new Date().getFullYear().toString(),
     downPayment: '',
     dealerFees: '',
-    registrationFees: '',
-    titleFees: '',
+    governmentFees: '',
     otherFees: '',
   });
 
@@ -63,8 +61,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     year: new Date().getFullYear(),
     downPayment: 0,
     dealerFees: 0,
-    registrationFees: 0,
-    titleFees: 0,
+    governmentFees: 0,
     otherFees: 0,
   });
 
@@ -85,8 +82,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
         year: car.year ? car.year.toString() : new Date().getFullYear().toString(),
         downPayment: car.downPayment ? car.downPayment.toString() : '',
         dealerFees: car.dealerFees ? car.dealerFees.toString() : '',
-        registrationFees: car.registrationFees ? car.registrationFees.toString() : '',
-        titleFees: car.titleFees ? car.titleFees.toString() : '',
+        governmentFees: car.governmentFees ? car.governmentFees.toString() : '',
         otherFees: car.otherFees ? car.otherFees.toString() : '',
       });
     }
@@ -187,8 +183,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       year: parseFloat(stringValues.year) || new Date().getFullYear(),
       downPayment: parseFloat(stringValues.downPayment) || 0,
       dealerFees: parseFloat(stringValues.dealerFees) || 0,
-      registrationFees: parseFloat(stringValues.registrationFees) || 0,
-      titleFees: parseFloat(stringValues.titleFees) || 0,
+      governmentFees: parseFloat(stringValues.governmentFees) || 0,
       otherFees: parseFloat(stringValues.otherFees) || 0,
       repName: formData.repName || '',
       repPhone: formData.repPhone || '',
@@ -225,8 +220,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
               year: importedCar.year ? importedCar.year.toString() : new Date().getFullYear().toString(),
               downPayment: importedCar.downPayment ? importedCar.downPayment.toString() : '',
               dealerFees: importedCar.dealerFees ? importedCar.dealerFees.toString() : '',
-              registrationFees: importedCar.registrationFees ? importedCar.registrationFees.toString() : '',
-              titleFees: importedCar.titleFees ? importedCar.titleFees.toString() : '',
+              governmentFees: importedCar.governmentFees ? importedCar.governmentFees.toString() : '',
               otherFees: importedCar.otherFees ? importedCar.otherFees.toString() : '',
             });
           } catch (error) {
@@ -519,6 +513,21 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                   The APR the dealer is charging you
                 </p>
               </div>
+              <div className="col-span-2">
+                <blockquote className="border-l-4 border-blue-500 dark:border-blue-400 pl-4 py-2 my-4 bg-blue-50 dark:bg-blue-900/20 rounded-r-lg">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                    💡 Fees You Should Try to Waive:
+                  </p>
+                  <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-1 list-disc list-inside">
+                    <li><strong>Dealer Fees:</strong> Dealer Service Fee, Pre-Delivery Service Charge, Documentation Fee, Electronic Filing Fee - These are <span className="text-green-600 dark:text-green-400 font-semibold">100% negotiable</span> and can often be waived entirely or reduced significantly.</li>
+                    <li><strong>Other Fees:</strong> VIN Etch, Battery Fee, Tire Fee, Agency Fee - Most of these are <span className="text-green-600 dark:text-green-400 font-semibold">optional add-ons</span> that dealers use to increase profit. You can decline them.</li>
+                    <li><strong>Government Fees:</strong> DMV, License, Registration, Title Transfer - These are <span className="text-orange-600 dark:text-orange-400 font-semibold">usually mandatory</span> government fees, but verify the amounts aren't inflated.</li>
+                  </ul>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
+                    💰 Tip: Always ask "Can you waive the dealer fees?" - Many dealers will reduce or eliminate them to close the deal.
+                  </p>
+                </blockquote>
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   Dealer Fees ($) - Optional
@@ -530,20 +539,27 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                   onChange={handleChange}
                   placeholder={`e.g., ${FLORIDA_FEE_RANGES.dealerFees.typical}`}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    (parseFloat(getStringValue('dealerFees')) || 0) > FLORIDA_FEE_RANGES.dealerFees.max
+                    (parseFloat(getStringValue('dealerFees')) || 0) > FLORIDA_FEE_RANGES.dealerFees.recommendedMax
                       ? 'border-red-500 dark:border-red-500'
+                      : (parseFloat(getStringValue('dealerFees')) || 0) > FLORIDA_FEE_RANGES.dealerFees.typical
+                      ? 'border-yellow-500 dark:border-yellow-500'
                       : 'border-gray-300'
                   }`}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Documentation fees, prep fees, etc. (usually disclosed on contract)
+                  <strong>Examples:</strong> Dealer Service Fee, Pre-Delivery Service Charge, Documentation Fee, Electronic Filing Fee
                 </p>
                 <p className={`text-xs mt-1 ${
-                  (parseFloat(getStringValue('dealerFees')) || 0) > FLORIDA_FEE_RANGES.dealerFees.max
+                  (parseFloat(getStringValue('dealerFees')) || 0) > FLORIDA_FEE_RANGES.dealerFees.recommendedMax
                     ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : (parseFloat(getStringValue('dealerFees')) || 0) > FLORIDA_FEE_RANGES.dealerFees.typical
+                    ? 'text-yellow-600 dark:text-yellow-400'
                     : 'text-gray-600 dark:text-gray-400'
                 }`}>
-                  FL Expected Range: ${FLORIDA_FEE_RANGES.dealerFees.min.toFixed(2)} - ${FLORIDA_FEE_RANGES.dealerFees.max.toFixed(2)} (Typical: ${FLORIDA_FEE_RANGES.dealerFees.typical})
+                  {((parseFloat(getStringValue('dealerFees')) || 0) > FLORIDA_FEE_RANGES.dealerFees.recommendedMax) 
+                    ? `⚠️ High: $${(parseFloat(getStringValue('dealerFees')) || 0).toFixed(2)} exceeds recommended max of $${FLORIDA_FEE_RANGES.dealerFees.recommendedMax.toFixed(2)}`
+                    : `Recommended: Should not exceed $${FLORIDA_FEE_RANGES.dealerFees.recommendedMax.toFixed(2)} (Typical: $${FLORIDA_FEE_RANGES.dealerFees.typical.toFixed(2)})`
+                  }
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-semibold">
                   ✓ Negotiable - Can be waived or reduced
@@ -551,53 +567,36 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  Registration Fees ($) - Optional
+                  Government Fees ($) - Optional
                 </label>
                 <input
                   type="text"
-                  name="registrationFees"
-                  value={getStringValue('registrationFees')}
+                  name="governmentFees"
+                  value={getStringValue('governmentFees')}
                   onChange={handleChange}
-                  placeholder={`e.g., ${FLORIDA_FEE_RANGES.registrationFees.typical}`}
+                  placeholder={`e.g., ${FLORIDA_FEE_RANGES.governmentFees.typical}`}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    (parseFloat(getStringValue('registrationFees')) || 0) > FLORIDA_FEE_RANGES.registrationFees.max
+                    (parseFloat(getStringValue('governmentFees')) || 0) > FLORIDA_FEE_RANGES.governmentFees.recommendedMax
                       ? 'border-red-500 dark:border-red-500'
+                      : (parseFloat(getStringValue('governmentFees')) || 0) > FLORIDA_FEE_RANGES.governmentFees.typical
+                      ? 'border-yellow-500 dark:border-yellow-500'
                       : 'border-gray-300'
                   }`}
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <strong>Examples:</strong> DMV Fees, License Fees, Registration Fees, Title Transfer Fees, FL Doc. Stamp
+                </p>
                 <p className={`text-xs mt-1 ${
-                  (parseFloat(getStringValue('registrationFees')) || 0) > FLORIDA_FEE_RANGES.registrationFees.max
+                  (parseFloat(getStringValue('governmentFees')) || 0) > FLORIDA_FEE_RANGES.governmentFees.recommendedMax
                     ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : (parseFloat(getStringValue('governmentFees')) || 0) > FLORIDA_FEE_RANGES.governmentFees.typical
+                    ? 'text-yellow-600 dark:text-yellow-400'
                     : 'text-gray-600 dark:text-gray-400'
                 }`}>
-                  FL Expected Range: ${FLORIDA_FEE_RANGES.registrationFees.min.toFixed(2)} - ${FLORIDA_FEE_RANGES.registrationFees.max.toFixed(2)} (Typical: ${FLORIDA_FEE_RANGES.registrationFees.typical})
-                </p>
-                <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                  ⚠ Usually mandatory (government fee)
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  Title Fees ($) - Optional
-                </label>
-                <input
-                  type="text"
-                  name="titleFees"
-                  value={getStringValue('titleFees')}
-                  onChange={handleChange}
-                  placeholder={`e.g., ${FLORIDA_FEE_RANGES.titleFees.typical}`}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    (parseFloat(getStringValue('titleFees')) || 0) > FLORIDA_FEE_RANGES.titleFees.max
-                      ? 'border-red-500 dark:border-red-500'
-                      : 'border-gray-300'
-                  }`}
-                />
-                <p className={`text-xs mt-1 ${
-                  (parseFloat(getStringValue('titleFees')) || 0) > FLORIDA_FEE_RANGES.titleFees.max
-                    ? 'text-red-600 dark:text-red-400 font-semibold'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}>
-                  FL Expected Range: ${FLORIDA_FEE_RANGES.titleFees.min.toFixed(2)} - ${FLORIDA_FEE_RANGES.titleFees.max.toFixed(2)} (Typical: ${FLORIDA_FEE_RANGES.titleFees.typical})
+                  {((parseFloat(getStringValue('governmentFees')) || 0) > FLORIDA_FEE_RANGES.governmentFees.recommendedMax) 
+                    ? `⚠️ High: $${(parseFloat(getStringValue('governmentFees')) || 0).toFixed(2)} exceeds recommended max of $${FLORIDA_FEE_RANGES.governmentFees.recommendedMax.toFixed(2)}`
+                    : `Recommended: Should not exceed $${FLORIDA_FEE_RANGES.governmentFees.recommendedMax.toFixed(2)} (Typical: $${FLORIDA_FEE_RANGES.governmentFees.typical.toFixed(2)})`
+                  }
                 </p>
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                   ⚠ Usually mandatory (government fee)
@@ -614,20 +613,27 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                   onChange={handleChange}
                   placeholder={`e.g., ${FLORIDA_FEE_RANGES.otherFees.typical}`}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    (parseFloat(getStringValue('otherFees')) || 0) > FLORIDA_FEE_RANGES.otherFees.max
+                    (parseFloat(getStringValue('otherFees')) || 0) > FLORIDA_FEE_RANGES.otherFees.recommendedMax
                       ? 'border-red-500 dark:border-red-500'
+                      : (parseFloat(getStringValue('otherFees')) || 0) > FLORIDA_FEE_RANGES.otherFees.typical
+                      ? 'border-yellow-500 dark:border-yellow-500'
                       : 'border-gray-300'
                   }`}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Inspection, license plate, etc.
+                  <strong>Examples:</strong> VIN Etch ($359), Battery Fee ($1.50), Tire Fee ($5), Agency Fee ($99)
                 </p>
                 <p className={`text-xs mt-1 ${
-                  (parseFloat(getStringValue('otherFees')) || 0) > FLORIDA_FEE_RANGES.otherFees.max
+                  (parseFloat(getStringValue('otherFees')) || 0) > FLORIDA_FEE_RANGES.otherFees.recommendedMax
                     ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : (parseFloat(getStringValue('otherFees')) || 0) > FLORIDA_FEE_RANGES.otherFees.typical
+                    ? 'text-yellow-600 dark:text-yellow-400'
                     : 'text-gray-600 dark:text-gray-400'
                 }`}>
-                  FL Expected Range: ${FLORIDA_FEE_RANGES.otherFees.min.toFixed(2)} - ${FLORIDA_FEE_RANGES.otherFees.max.toFixed(2)} (Typical: ${FLORIDA_FEE_RANGES.otherFees.typical})
+                  {((parseFloat(getStringValue('otherFees')) || 0) > FLORIDA_FEE_RANGES.otherFees.recommendedMax) 
+                    ? `⚠️ High: $${(parseFloat(getStringValue('otherFees')) || 0).toFixed(2)} exceeds recommended max of $${FLORIDA_FEE_RANGES.otherFees.recommendedMax.toFixed(2)}`
+                    : `Recommended: Should not exceed $${FLORIDA_FEE_RANGES.otherFees.recommendedMax.toFixed(2)} (Typical: $${FLORIDA_FEE_RANGES.otherFees.typical.toFixed(2)})`
+                  }
                 </p>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Depends on fee type - some negotiable, some mandatory

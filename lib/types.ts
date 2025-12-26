@@ -18,10 +18,9 @@ export interface Car {
   mileage: number;
   year: number;
   downPayment: number;
-  dealerFees: number; // Documentation fees, prep fees, etc. (often inflated or unnecessary)
-  registrationFees: number; // Registration fees
-  titleFees: number; // Title transfer fees
-  otherFees: number; // Other fees (inspection, license plate, etc.)
+  dealerFees: number; // Dealer Service Fee, Pre-Delivery Service Charge, Documentation Fee, Electronic Filing Fee, etc.
+  governmentFees: number; // DMV Fees, License Fees, Registration Fees, Title Transfer Fees, etc.
+  otherFees: number; // VIN Etch, Battery Fee, Tire Fee, Agency Fee, and any other miscellaneous fees
   warrantyType?: string; // e.g., "Manufacturer", "Extended", "CPO", "None"
   warrantyRemainingMonths?: number; // Remaining warranty coverage in months
   warrantyRemainingMiles?: number; // Remaining warranty coverage in miles
@@ -55,7 +54,9 @@ export interface CarCalculations {
   dealerFinancingMarkup: number; // Extra interest paid due to dealer markup on APR (if buyRateApr is provided)
   dealerFinancingMarkupCost: number; // Total cost of dealer financing markup over loan term
   totalDealerFees: number; // Sum of dealer fees
-  totalAllFees: number; // Sum of all fees (dealer + registration + title + other)
+  totalGovernmentFees: number; // Sum of government fees
+  totalOtherFees: number; // Sum of other fees
+  totalAllFees: number; // Sum of all fees (dealer + government + other)
   averageAnnualInterest: number; // Average interest paid per year (Total Interest / Term Length * 12)
 }
 

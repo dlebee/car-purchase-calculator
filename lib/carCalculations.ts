@@ -90,8 +90,11 @@ export function calculateCarMetrics(car: Car): CarCalculations {
   const adjustedCost = car.negotiatedPrice - car.downPayment; // Amount that needs financing (before tax)
   const financedAmount = principal; // Adjusted cost + tax (actual amount being financed)
   
-  // Calculate total fees
-  const totalFees = (car.dealerFees || 0) + (car.registrationFees || 0) + (car.titleFees || 0) + (car.otherFees || 0);
+  // Calculate total fees by category
+  const totalDealerFees = car.dealerFees || 0;
+  const totalGovernmentFees = car.governmentFees || 0;
+  const totalOtherFees = car.otherFees || 0;
+  const totalFees = totalDealerFees + totalGovernmentFees + totalOtherFees;
   
   // Total cost = down payment + financed amount + total interest + total fees
   const totalCost = car.downPayment + financedAmount + totalInterest + totalFees;
@@ -118,11 +121,8 @@ export function calculateCarMetrics(car: Car): CarCalculations {
     dealerFinancingMarkupCost = totalInterest - totalInterestAtBuyRate;
   }
 
-  // Total dealer fees
-  const totalDealerFees = car.dealerFees || 0;
-  
-  // Total all fees
-  const totalAllFees = (car.dealerFees || 0) + (car.registrationFees || 0) + (car.titleFees || 0) + (car.otherFees || 0);
+  // Total all fees (already calculated above)
+  const totalAllFees = totalFees;
 
   // Calculate average annual interest: (Total Interest / Term Length) * 12
   const averageAnnualInterest = car.termLength > 0 ? (totalInterest / car.termLength) * 12 : 0;
@@ -142,6 +142,8 @@ export function calculateCarMetrics(car: Car): CarCalculations {
     dealerFinancingMarkup,
     dealerFinancingMarkupCost,
     totalDealerFees,
+    totalGovernmentFees,
+    totalOtherFees,
     totalAllFees,
     averageAnnualInterest,
   };

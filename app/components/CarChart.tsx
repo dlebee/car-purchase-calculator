@@ -15,10 +15,9 @@ import {
 
 // Florida fee ranges for validation
 const FLORIDA_FEE_RANGES = {
-  dealerFees: { min: 600, max: 999, typical: 950 },
-  registrationFees: { min: 14.50, max: 257.50, typical: 225 },
-  titleFees: { min: 75.75, max: 85.75, typical: 75.75 },
-  otherFees: { min: 0, max: 100, typical: 28 },
+  dealerFees: { min: 0, max: 1500, typical: 999, recommendedMax: 1200 },
+  governmentFees: { min: 200, max: 600, typical: 400, recommendedMax: 500 },
+  otherFees: { min: 0, max: 500, typical: 100, recommendedMax: 400 },
 };
 
 interface CarChartProps {
@@ -127,23 +126,15 @@ export default function CarChart({
       typical: FLORIDA_FEE_RANGES.dealerFees.typical,
     });
   }
-  if (car.registrationFees > FLORIDA_FEE_RANGES.registrationFees.max) {
+  if (car.governmentFees > FLORIDA_FEE_RANGES.governmentFees.recommendedMax) {
     feeWarnings.push({
-      name: 'Registration Fees',
-      value: car.registrationFees,
-      range: `$${FLORIDA_FEE_RANGES.registrationFees.min}-${FLORIDA_FEE_RANGES.registrationFees.max}`,
-      typical: FLORIDA_FEE_RANGES.registrationFees.typical,
+      name: 'Government Fees',
+      value: car.governmentFees,
+      range: `$${FLORIDA_FEE_RANGES.governmentFees.min}-${FLORIDA_FEE_RANGES.governmentFees.recommendedMax}`,
+      typical: FLORIDA_FEE_RANGES.governmentFees.typical,
     });
   }
-  if (car.titleFees > FLORIDA_FEE_RANGES.titleFees.max) {
-    feeWarnings.push({
-      name: 'Title Fees',
-      value: car.titleFees,
-      range: `$${FLORIDA_FEE_RANGES.titleFees.min}-${FLORIDA_FEE_RANGES.titleFees.max}`,
-      typical: FLORIDA_FEE_RANGES.titleFees.typical,
-    });
-  }
-  if (car.otherFees > FLORIDA_FEE_RANGES.otherFees.max) {
+  if (car.otherFees > FLORIDA_FEE_RANGES.otherFees.recommendedMax) {
     feeWarnings.push({
       name: 'Other Fees',
       value: car.otherFees,
@@ -429,36 +420,18 @@ export default function CarChart({
                       </span>
                     </div>
                   )}
-                  {car.registrationFees > 0 && (
+                  {car.governmentFees > 0 && (
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <span className="text-gray-600 dark:text-gray-400">
-                          Registration Fees:
+                          Government Fees:
                         </span>
                         <span className="ml-2 text-[9px] text-orange-600 dark:text-orange-400">
                           ⚠ Usually mandatory
                         </span>
                       </div>
                       <span className="font-semibold text-gray-900 dark:text-white">
-                        ${car.registrationFees.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  )}
-                  {car.titleFees > 0 && (
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Title Fees:
-                        </span>
-                        <span className="ml-2 text-[9px] text-orange-600 dark:text-orange-400">
-                          ⚠ Usually mandatory
-                        </span>
-                      </div>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        ${car.titleFees.toLocaleString(undefined, {
+                        ${car.governmentFees.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
