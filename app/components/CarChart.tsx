@@ -408,7 +408,7 @@ export default function CarChart({
               <span className="text-blue-600 dark:text-blue-400">${metrics.financedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">+ Total Interest:</span>
+              <span className="text-gray-600 dark:text-gray-400">+ Total Interest ({carWithOverride.apr > 0 ? (carWithOverride.apr * 100).toFixed(2) : '0.00'}% APR):</span>
               <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             {metrics.totalAllFees > 0 && (
