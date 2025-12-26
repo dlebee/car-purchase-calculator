@@ -91,6 +91,37 @@ export default function ComparePage() {
     setAnalysisError(null);
   };
 
+  const handleSelectAll = () => {
+    setSelectedCarIds(new Set(cars.map(c => c.id)));
+    setAnalysis(null);
+    setAnalysisError(null);
+  };
+
+  const handleUnselectAll = () => {
+    setSelectedCarIds(new Set());
+    setAnalysis(null);
+    setAnalysisError(null);
+  };
+
+  const handleSelectByMake = (make: string) => {
+    setSelectedCarIds((prev) => {
+      const newSet = new Set(prev);
+      const carsFromMake = cars.filter(c => c.make === make);
+      const allSelected = carsFromMake.every(car => prev.has(car.id));
+      
+      if (allSelected) {
+        // If all are selected, unselect all from this make
+        carsFromMake.forEach(car => newSet.delete(car.id));
+      } else {
+        // If not all are selected, select all from this make
+        carsFromMake.forEach(car => newSet.add(car.id));
+      }
+      return newSet;
+    });
+    setAnalysis(null);
+    setAnalysisError(null);
+  };
+
   const handleDeleteCar = (carId: string) => {
     const car = cars.find(c => c.id === carId);
     const carName = car ? `${car.year} ${car.make} ${car.model}` : 'this car';
@@ -243,30 +274,64 @@ export default function ComparePage() {
         ) : (
           <>
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Select Cars to Compare</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cars.map((car) => (
-                  <label
-                    key={car.id}
-                    className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Select Cars to Compare</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSelectAll}
+                    className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedCarIds.has(car.id)}
-                      onChange={() => handleToggleCar(car.id)}
-                      className="w-5 h-5 text-blue-600 rounded"
-                    />
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
-                        {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        ${car.negotiatedPrice.toLocaleString()}
-                      </div>
-                    </div>
-                  </label>
-                ))}
+                    Select All
+                  </button>
+                  <button
+                    onClick={handleUnselectAll}
+                    className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
+                  >
+                    Unselect All
+                  </button>
+                </div>
               </div>
+              
+              {/* Group cars by make */}
+              {Array.from(new Set(cars.map(c => c.make))).sort().map((make) => {
+                const carsFromMake = cars.filter(c => c.make === make);
+                return (
+                  <div key={make} className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 
+                        onClick={() => handleSelectByMake(make)}
+                        className="text-lg font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                        title={`Click to select all ${make} cars`}
+                      >
+                        {make} ({carsFromMake.length})
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ml-4">
+                      {carsFromMake.map((car) => (
+                        <label
+                          key={car.id}
+                          className="flex items-center space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedCarIds.has(car.id)}
+                            onChange={() => handleToggleCar(car.id)}
+                            className="w-5 h-5 text-blue-600 rounded"
+                          />
+                          <div>
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              ${car.negotiatedPrice.toLocaleString()}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">

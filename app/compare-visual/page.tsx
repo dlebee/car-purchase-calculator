@@ -96,6 +96,31 @@ export default function CompareVisualPage() {
     });
   };
 
+  const handleSelectAll = () => {
+    setSelectedCarIds(new Set(cars.map(c => c.id)));
+  };
+
+  const handleUnselectAll = () => {
+    setSelectedCarIds(new Set());
+  };
+
+  const handleSelectByMake = (make: string) => {
+    setSelectedCarIds((prev) => {
+      const newSet = new Set(prev);
+      const carsFromMake = cars.filter(c => c.make === make);
+      const allSelected = carsFromMake.every(car => prev.has(car.id));
+      
+      if (allSelected) {
+        // If all are selected, unselect all from this make
+        carsFromMake.forEach(car => newSet.delete(car.id));
+      } else {
+        // If not all are selected, select all from this make
+        carsFromMake.forEach(car => newSet.add(car.id));
+      }
+      return newSet;
+    });
+  };
+
   const handleDeleteCar = (carId: string) => {
     const car = cars.find(c => c.id === carId);
     const carName = car ? `${car.year} ${car.make} ${car.model}` : 'this car';
@@ -328,39 +353,73 @@ export default function CompareVisualPage() {
 
         {/* Car Selection */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            Select Cars to Compare
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {cars.map((car) => {
-              const isSelected = selectedCarIds.has(car.id);
-              return (
-                <label
-                  key={car.id}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                    isSelected
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => handleToggleCar(car.id)}
-                    className="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {car.year} {car.make} {car.model}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      ${car.negotiatedPrice.toLocaleString()}
-                    </div>
-                  </div>
-                </label>
-              );
-            })}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Select Cars to Compare
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSelectAll}
+                className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors"
+              >
+                Select All
+              </button>
+              <button
+                onClick={handleUnselectAll}
+                className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
+              >
+                Unselect All
+              </button>
+            </div>
           </div>
+          
+          {/* Group cars by make */}
+          {Array.from(new Set(cars.map(c => c.make))).sort().map((make) => {
+            const carsFromMake = cars.filter(c => c.make === make);
+            return (
+              <div key={make} className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 
+                    onClick={() => handleSelectByMake(make)}
+                    className="text-lg font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                    title={`Click to select all ${make} cars`}
+                  >
+                    {make} ({carsFromMake.length})
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-4">
+                  {carsFromMake.map((car) => {
+                    const isSelected = selectedCarIds.has(car.id);
+                    return (
+                      <label
+                        key={car.id}
+                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleCar(car.id)}
+                          className="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {car.year} {car.make} {car.model}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            ${car.negotiatedPrice.toLocaleString()}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Charts Grid */}

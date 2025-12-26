@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import carStorage from '@/lib/carStorage';
 import { Car } from '@/lib/types';
+import { calculateMonthlyPayment } from '@/lib/carCalculations';
 
 const FILTERS_STORAGE_KEY = 'car-listings-filters';
 const SEARCH_RESULTS_STORAGE_KEY = 'car-listings-search-results';
@@ -64,6 +65,16 @@ export default function ListingsPage() {
     if (!basePrice || basePrice === 0 || !retailPrice || retailPrice === 0) return null;
     const discount = ((basePrice - retailPrice) / basePrice) * 100;
     return discount; // Can be positive (discount) or negative (markup)
+  };
+
+  // Helper function to calculate monthly payment with taxes
+  // Uses default values: 4.5% APR, 36 months, 0 down payment, 7% tax rate
+  const calculateMonthlyPaymentWithTax = (price: number, apr: number = 0.045, termMonths: number = 36, downPayment: number = 0, taxRate: number = 7): number => {
+    if (!price || price === 0) return 0;
+    const tax = (price * taxRate) / 100;
+    const principal = price + tax - downPayment;
+    const monthlyPayment = calculateMonthlyPayment(principal, apr, termMonths);
+    return monthlyPayment;
   };
 
   // Load filters from localStorage on mount
@@ -789,12 +800,20 @@ export default function ListingsPage() {
                       </div>
                     ) : null}
                     {listing.retailListing?.price ? (
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600 dark:text-gray-400">Price:</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          ${listing.retailListing.price.toLocaleString()}
-                        </span>
-                      </div>
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">Price:</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            ${listing.retailListing.price.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-500 dark:text-gray-400">Monthly (w/ tax):</span>
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            ${calculateMonthlyPaymentWithTax(listing.retailListing.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </>
                     ) : null}
                     
                     <div className="flex justify-between">
@@ -945,6 +964,11 @@ export default function ListingsPage() {
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Price</div>
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       ${selectedListing.retailListing.price.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                      Monthly (w/ tax): <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        ${calculateMonthlyPaymentWithTax(selectedListing.retailListing.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
                     </div>
                   </div>
                 )}
