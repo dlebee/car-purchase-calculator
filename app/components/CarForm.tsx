@@ -95,7 +95,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     const { name, value, type } = e.target;
     
     // Text fields - store directly
-    if (name === 'make' || name === 'model' || name === 'tier' || name === 'dealership' || name === 'vin' || name === 'notes') {
+    if (name === 'make' || name === 'model' || name === 'tier' || name === 'dealership' || name === 'vin' || name === 'notes' || name === 'repName' || name === 'repPhone') {
       setFormData((prev) => ({ ...prev, [name]: value }));
       // Also update stringValues for VIN to keep it in sync
       if (name === 'vin') {
@@ -176,6 +176,8 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       registrationFees: parseFloat(stringValues.registrationFees) || 0,
       titleFees: parseFloat(stringValues.titleFees) || 0,
       otherFees: parseFloat(stringValues.otherFees) || 0,
+      repName: formData.repName || '',
+      repPhone: formData.repPhone || '',
     };
     carStorage.saveCar(carToSave);
     onSave();
@@ -355,6 +357,32 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                   name="dealership"
                   value={formData.dealership}
                   onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Rep Name
+                </label>
+                <input
+                  type="text"
+                  name="repName"
+                  value={formData.repName || ''}
+                  onChange={handleChange}
+                  placeholder="Sales representative name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                  Rep Phone
+                </label>
+                <input
+                  type="text"
+                  name="repPhone"
+                  value={formData.repPhone || ''}
+                  onChange={handleChange}
+                  placeholder="e.g., (555) 123-4567"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>

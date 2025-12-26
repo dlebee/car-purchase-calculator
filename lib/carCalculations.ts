@@ -120,6 +120,9 @@ export function calculateCarMetrics(car: Car): CarCalculations {
   // Total all fees
   const totalAllFees = (car.dealerFees || 0) + (car.registrationFees || 0) + (car.titleFees || 0) + (car.otherFees || 0);
 
+  // Calculate average annual interest: (Total Interest / Term Length) * 12
+  const averageAnnualInterest = car.termLength > 0 ? (totalInterest / car.termLength) * 12 : 0;
+
   return {
     monthlyPayment,
     monthlyPaymentWithTax,
@@ -136,6 +139,7 @@ export function calculateCarMetrics(car: Car): CarCalculations {
     dealerFinancingMarkupCost,
     totalDealerFees,
     totalAllFees,
+    averageAnnualInterest,
   };
 }
 

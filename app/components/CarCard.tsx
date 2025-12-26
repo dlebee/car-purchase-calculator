@@ -116,6 +116,14 @@ export default function CarCard({
             ${metrics.totalInterest.toFixed(2)}
           </span>
         </div>
+        {car.termLength > 0 && (
+          <div>
+            <span className="text-gray-600 dark:text-gray-400">Avg Annual Interest:</span>{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              ${metrics.averageAnnualInterest.toFixed(2)}
+            </span>
+          </div>
+        )}
         {metrics.discount !== 0 && (
           <div className="col-span-2">
             <span className="text-gray-600 dark:text-gray-400">Discount:</span>{' '}
@@ -144,6 +152,18 @@ export default function CarCard({
           <div className="text-[10px]">
             <span className="text-gray-600 dark:text-gray-400">Dealer:</span>{' '}
             <span className="font-semibold text-gray-900 dark:text-white">{car.dealership}</span>
+          </div>
+        )}
+        {car.repName && (
+          <div className="text-[10px]">
+            <span className="text-gray-600 dark:text-gray-400">Rep:</span>{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">{car.repName}</span>
+          </div>
+        )}
+        {car.repPhone && (
+          <div className="text-[10px]">
+            <span className="text-gray-600 dark:text-gray-400">Rep Phone:</span>{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">{car.repPhone}</span>
           </div>
         )}
         {car.vin && (

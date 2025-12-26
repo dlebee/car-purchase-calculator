@@ -43,6 +43,8 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     { label: 'Tier', key: 'tier' as keyof Car },
     { label: 'VIN', key: 'vin' as keyof Car },
     { label: 'Dealership', key: 'dealership' as keyof Car },
+    { label: 'Rep Name', key: 'repName' as keyof Car },
+    { label: 'Rep Phone', key: 'repPhone' as keyof Car },
     { label: 'Listed Price', key: 'listedPrice' as keyof Car, format: 'currency' },
     { label: 'Negotiated Price', key: 'negotiatedPrice' as keyof Car, format: 'currency' },
     { label: 'Monthly Payment w/ Tax', key: 'monthlyPaymentWithTax', format: 'currency', calculated: true },
@@ -55,6 +57,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     { label: 'Down Payment', key: 'downPayment' as keyof Car, format: 'currency' },
     { label: 'Monthly Payment', key: 'monthlyPayment', format: 'currency', calculated: true },
     { label: 'Total Interest', key: 'totalInterest', format: 'currency', calculated: true },
+    { label: 'Avg Annual Interest', key: 'averageAnnualInterest', format: 'currency', calculated: true },
     { label: 'Total Tax', key: 'totalTax', format: 'currency', calculated: true },
     { label: 'Total Cost', key: 'totalCost', format: 'currency', calculated: true },
     { label: 'Discount', key: 'discount', format: 'currency', calculated: true },
@@ -101,6 +104,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       if (field.key === 'monthlyPayment') return metrics.monthlyPayment;
       if (field.key === 'monthlyPaymentWithTax') return metrics.monthlyPaymentWithTax;
       if (field.key === 'totalInterest') return metrics.totalInterest;
+      if (field.key === 'averageAnnualInterest') return metrics.averageAnnualInterest;
       if (field.key === 'totalTax') return metrics.totalTax;
       if (field.key === 'totalCost') return metrics.totalCost;
       if (field.key === 'discount') return metrics.discount;
@@ -124,6 +128,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     'totalCost',
     'monthlyPaymentWithTax',
     'totalInterest',
+    'averageAnnualInterest',
     'totalTax',
     'negotiatedPrice',
     'listedPrice',
@@ -145,6 +150,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       if (field.key === 'monthlyPayment') baselineValue = baselineMetrics.monthlyPayment;
       else if (field.key === 'monthlyPaymentWithTax') baselineValue = baselineMetrics.monthlyPaymentWithTax;
       else if (field.key === 'totalInterest') baselineValue = baselineMetrics.totalInterest;
+      else if (field.key === 'averageAnnualInterest') baselineValue = baselineMetrics.averageAnnualInterest;
       else if (field.key === 'totalTax') baselineValue = baselineMetrics.totalTax;
       else if (field.key === 'totalCost') baselineValue = baselineMetrics.totalCost;
       else return null;

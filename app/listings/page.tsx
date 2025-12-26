@@ -392,6 +392,8 @@ export default function ListingsPage() {
         registrationFees: 0,
         titleFees: 0,
         otherFees: 0,
+        repName: '',
+        repPhone: '',
       };
       
       // Add to car storage

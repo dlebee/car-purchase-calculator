@@ -50,6 +50,8 @@ export default function Home() {
           registrationFees: 0,
           titleFees: 0,
           otherFees: 0,
+          repName: '',
+          repPhone: '',
         };
         
         setEditingCar(partialCar as Car);
@@ -283,7 +285,7 @@ export default function Home() {
                 <option value="">Select a car...</option>
                 {cars.map((car) => (
                   <option key={car.id} value={car.id}>
-                    {car.year} {car.make} {car.model} {car.tier ? `(${car.tier})` : ''}
+                    {car.year} {car.make} {car.model} {car.tier ? `(${car.tier})` : ''}{car.dealership ? ` - ${car.dealership}` : ''}
                   </option>
                 ))}
               </select>

@@ -25,6 +25,8 @@ export interface Car {
   warrantyRemainingMonths?: number; // Remaining warranty coverage in months
   warrantyRemainingMiles?: number; // Remaining warranty coverage in miles
   warrantyTransferrable?: boolean; // Whether warranty transfers to new owner
+  repName?: string; // Sales representative name
+  repPhone?: string; // Sales representative phone number
 }
 
 export interface PaymentScheduleEntry {
@@ -53,5 +55,6 @@ export interface CarCalculations {
   dealerFinancingMarkupCost: number; // Total cost of dealer financing markup over loan term
   totalDealerFees: number; // Sum of dealer fees
   totalAllFees: number; // Sum of all fees (dealer + registration + title + other)
+  averageAnnualInterest: number; // Average interest paid per year (Total Interest / Term Length * 12)
 }
 
