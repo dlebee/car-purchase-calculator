@@ -354,6 +354,35 @@ export default function CarChart({
           </div>
           <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Cost Breakdown</div>
           <div className="space-y-1 text-xs">
+            {car.listedPrice > 0 && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Listed Price:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white line-through">${car.listedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+                {metrics.discount !== 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className={`${metrics.discount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {metrics.discount >= 0 ? 'Discount:' : 'Markup:'}
+                      </span>
+                      <span className={`font-semibold ${metrics.discount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {metrics.discount >= 0 ? '-' : '+'}${Math.abs(metrics.discount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span className={`text-xs ${metrics.discount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        Discount %:
+                      </span>
+                      <span className={`text-xs font-semibold ${metrics.discount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {metrics.discountPercent >= 0 ? '-' : '+'}{Math.abs(metrics.discountPercent).toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="border-t border-gray-300 dark:border-gray-600 pt-1 mb-1"></div>
+                  </>
+                )}
+              </>
+            )}
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">Negotiated Price:</span>
               <span className="font-semibold text-gray-900 dark:text-white">${car.negotiatedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>

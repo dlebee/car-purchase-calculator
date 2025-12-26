@@ -70,6 +70,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       setFormData(car);
       // Initialize string values from car data
       setStringValues({
+        vin: car.vin || '',
         listedPrice: car.listedPrice ? car.listedPrice.toString() : '',
         negotiatedPrice: car.negotiatedPrice ? car.negotiatedPrice.toString() : '',
         apr: car.apr ? (car.apr * 100).toString() : '',
