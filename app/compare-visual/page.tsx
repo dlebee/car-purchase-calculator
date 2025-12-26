@@ -96,6 +96,23 @@ export default function CompareVisualPage() {
     });
   };
 
+  const handleDeleteCar = (carId: string) => {
+    const car = cars.find(c => c.id === carId);
+    const carName = car ? `${car.year} ${car.make} ${car.model}` : 'this car';
+    if (confirm(`Are you sure you want to delete ${carName}? This action cannot be undone.`)) {
+      // Remove from selected cars
+      setSelectedCarIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(carId);
+        return newSet;
+      });
+      // Delete from storage
+      carStorage.deleteCar(carId);
+      // Reload cars
+      loadCars();
+    }
+  };
+
   const selectedCars = cars.filter((car) => selectedCarIds.has(car.id));
 
   // Overrides (PREVIEW ONLY - does not save or modify car data)

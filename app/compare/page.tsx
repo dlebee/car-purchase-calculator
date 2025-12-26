@@ -91,6 +91,26 @@ export default function ComparePage() {
     setAnalysisError(null);
   };
 
+  const handleDeleteCar = (carId: string) => {
+    const car = cars.find(c => c.id === carId);
+    const carName = car ? `${car.year} ${car.make} ${car.model}` : 'this car';
+    if (confirm(`Are you sure you want to delete ${carName}? This action cannot be undone.`)) {
+      // Remove from selected cars
+      setSelectedCarIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(carId);
+        return newSet;
+      });
+      // Delete from storage
+      carStorage.deleteCar(carId);
+      // Reload cars
+      loadCars();
+      // Clear analysis when car is deleted
+      setAnalysis(null);
+      setAnalysisError(null);
+    }
+  };
+
   const handleAnalyzeComparison = async () => {
     if (selectedCars.length === 0) {
       setAnalysisError('Please select at least one car to analyze');
@@ -385,6 +405,7 @@ export default function ComparePage() {
                 downPaymentOverride={downPaymentOverrideValue}
                 termOverride={termOverrideValue}
                 aprOverride={aprOverrideValue}
+                onDeleteCar={handleDeleteCar}
               />
               
               {analysis && (

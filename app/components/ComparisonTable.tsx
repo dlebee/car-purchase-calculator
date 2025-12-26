@@ -9,9 +9,10 @@ interface ComparisonTableProps {
   termOverride?: number;
   aprOverride?: number;
   onExportCSV?: () => void;
+  onDeleteCar?: (carId: string) => void;
 }
 
-export default function ComparisonTable({ cars, downPaymentOverride, termOverride, aprOverride, onExportCSV }: ComparisonTableProps) {
+export default function ComparisonTable({ cars, downPaymentOverride, termOverride, aprOverride, onExportCSV, onDeleteCar }: ComparisonTableProps) {
   if (cars.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
@@ -306,7 +307,25 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
                   key={car.id}
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider min-w-[200px] bg-gray-50 dark:bg-gray-700"
                 >
-                  {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
+                  <div className="flex items-center justify-between gap-2">
+                    <span>
+                      {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
+                    </span>
+                    {onDeleteCar && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteCar(car.id);
+                        }}
+                        className="p-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        title="Delete car"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
