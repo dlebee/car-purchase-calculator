@@ -6,6 +6,7 @@ export interface UserProfile {
   flatTaxFee: number;
   defaultDownPayment: number;
   defaultTermLength: number;
+  defaultApr: number; // APR as decimal (e.g., 0.045 for 4.5%)
 }
 
 const PROFILE_STORAGE_KEY = 'car-purchase-calculator-profile';
@@ -20,6 +21,7 @@ class ProfileStorage {
       flatTaxFee: 0,
       defaultDownPayment: 0,
       defaultTermLength: 60,
+      defaultApr: 0.045, // 4.5% default APR
     };
   }
 

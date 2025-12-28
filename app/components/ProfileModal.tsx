@@ -200,6 +200,26 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               Default loan term length when adding cars from listings
             </p>
           </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Default APR (%)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={profile.defaultApr ? (profile.defaultApr * 100).toFixed(2) : ''}
+              onChange={(e) => handleChange('defaultApr', parseFloat(e.target.value) / 100 || 0)}
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+              placeholder="4.50"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
+              <span className="text-blue-500">💡</span>
+              Default Annual Percentage Rate when adding cars from listings (e.g., 4.5 for 4.5%)
+            </p>
+          </div>
         </div>
 
         <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">

@@ -147,18 +147,22 @@ export default function Home() {
     const allCars = carStorage.getAllCars();
     let updatedCount = 0;
     
+    const profile = profileStorage.getProfile();
+    const defaultTermLength = profile.defaultTermLength || 60;
+    const defaultApr = profile.defaultApr || 0.045;
+    
     allCars.forEach((car) => {
       // Check if car has empty term length (0) and empty APR (0)
       if (car.termLength === 0 && car.apr === 0) {
-        car.termLength = 36;
-        car.apr = 0.045; // 4.5% APR
+        car.termLength = defaultTermLength;
+        car.apr = defaultApr;
         carStorage.saveCar(car);
         updatedCount++;
       }
     });
     
     if (updatedCount > 0) {
-      alert(`Updated ${updatedCount} car${updatedCount > 1 ? 's' : ''} with default values (36 months, 4.5% APR)`);
+      alert(`Updated ${updatedCount} car${updatedCount > 1 ? 's' : ''} with default values (${defaultTermLength} months, ${(defaultApr * 100).toFixed(1)}% APR)`);
       loadCars(); // Reload to refresh the UI
     } else {
       alert('No cars found with empty term length and APR.');

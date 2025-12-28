@@ -67,6 +67,18 @@ export default function ListingsPage() {
     return !!(listing.vehicle?.baseMsrp || listing.vehicle?.baseInvoice);
   };
 
+  // Helper function to check if there's a listed price but no retail price
+  const hasListedPriceButNoRetailPrice = (listing: Listing): boolean => {
+    const hasListedPrice = !!(listing.vehicle?.baseMsrp || listing.vehicle?.baseInvoice);
+    const hasRetailPrice = !!(listing.retailListing?.price && listing.retailListing.price > 0);
+    return hasListedPrice && !hasRetailPrice;
+  };
+
+  // Helper function to get the listed price (MSRP or Invoice)
+  const getListedPrice = (listing: Listing): number => {
+    return listing.vehicle?.baseMsrp ?? listing.vehicle?.baseInvoice ?? 0;
+  };
+
   // Helper function to calculate discount percentage from a base price
   const calculateDiscountPercent = (basePrice: number, retailPrice: number): number | null => {
     if (!basePrice || basePrice === 0 || !retailPrice || retailPrice === 0) return null;
@@ -377,20 +389,43 @@ export default function ListingsPage() {
       // Determine prices based on availability of MSRP/Invoice
       const hasPricingData = hasMsrpOrInvoice(listing);
       const retailPrice = listing.retailListing?.price ?? 0;
+      const listedPrice = getListedPrice(listing);
+      const hasListedButNoRetail = hasListedPriceButNoRetailPrice(listing);
       
-      // If no MSRP/Invoice, use retail price for both listed and negotiated
-      // Add warning to notes
-      if (!hasPricingData && retailPrice > 0) {
+      // Handle different pricing scenarios
+      let finalListedPrice: number;
+      let finalNegotiatedPrice: number;
+      
+      if (hasListedButNoRetail) {
+        // Case: Has listed price (MSRP/Invoice) but no retail price
+        // Use listed price for both listed and negotiated price with warning
+        finalListedPrice = listedPrice;
+        finalNegotiatedPrice = listedPrice;
+        notesParts.unshift('⚠️ WARNING: No retail price available. Using listed price (MSRP/Invoice) as negotiated price.');
+      } else if (!hasPricingData && retailPrice > 0) {
+        // Case: No MSRP/Invoice but has retail price
+        // Use retail price for both listed and negotiated
+        finalListedPrice = retailPrice;
+        finalNegotiatedPrice = retailPrice;
         notesParts.unshift('⚠️ WARNING: MSRP/Invoice data not available. Using retail price for both listed and negotiated prices.');
+      } else if (hasPricingData && retailPrice > 0) {
+        // Case: Has both listed price and retail price (normal case)
+        finalListedPrice = listedPrice;
+        finalNegotiatedPrice = retailPrice;
+      } else {
+        // Fallback: No pricing data at all
+        finalListedPrice = 0;
+        finalNegotiatedPrice = 0;
+        notesParts.unshift('⚠️ WARNING: No pricing data available.');
       }
       
       // Get profile defaults
       const profile = profileStorage.getProfile();
       
-      // Calculate tax using profile defaults
+      // Calculate tax using profile defaults (use negotiated price for tax calculation)
       const taxRate = profile.taxRate || 6;
       const flatTaxFee = profile.flatTaxFee || 0;
-      const tax = (retailPrice * taxRate) / 100 + flatTaxFee;
+      const tax = (finalNegotiatedPrice * taxRate) / 100 + flatTaxFee;
       
       // Create a new car object
       const newCar: Car = {
@@ -401,11 +436,9 @@ export default function ListingsPage() {
         year: listing.vehicle.year,
         tier: listing.vehicle.trim || '',
         dealership: listing.retailListing?.dealer || listing.retailListing?.dealership?.name || '',
-        listedPrice: hasPricingData 
-          ? (listing.vehicle?.baseMsrp ?? listing.vehicle?.baseInvoice ?? retailPrice)
-          : retailPrice, // If no MSRP/Invoice, use retail price for listed price
-        negotiatedPrice: retailPrice, // Use retail listing price as the price we pay
-        apr: 0.045, // Default 4.5% APR
+        listedPrice: finalListedPrice,
+        negotiatedPrice: finalNegotiatedPrice,
+        apr: profile.defaultApr || 0.045, // Use profile default or 4.5% APR
         buyRateApr: 0,
         termLength: profile.defaultTermLength || 60, // Use profile default or 60 months
         notes: notesParts.join(' | '),
@@ -846,6 +879,21 @@ export default function ListingsPage() {
                         </div>
                       </div>
                     ) : null}
+                    {hasListedPriceButNoRetailPrice(listing) ? (
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-2 mt-2">
+                        <div className="flex items-start gap-2">
+                          <span className="text-yellow-600 dark:text-yellow-400 text-sm">⚠️</span>
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-300">
+                              No retail price available
+                            </p>
+                            <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+                              Listed price will be used as negotiated price when adding
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                     {listing.retailListing?.price ? (
                       <>
                         <div className="flex justify-between items-center">
@@ -1015,6 +1063,32 @@ export default function ListingsPage() {
                     )}
                   </div>
                 )}
+                {hasListedPriceButNoRetailPrice(selectedListing) ? (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
+                    <div className="flex items-start gap-2 mb-2">
+                      <span className="text-yellow-600 dark:text-yellow-400 text-lg">⚠️</span>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                          No Retail Price Available
+                        </div>
+                        <div className="text-xs text-yellow-700 dark:text-yellow-400">
+                          This listing has a listed price (MSRP/Invoice) but no retail price. When adding to your calculator, the listed price will be used as the negotiated price.
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-yellow-200 dark:border-yellow-800">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Estimated Price (from listed price)</div>
+                      <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                        ${getListedPrice(selectedListing).toLocaleString()}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                        Monthly (w/ tax): <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+                          ${calculateMonthlyPaymentWithTax(getListedPrice(selectedListing)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
                 {selectedListing.retailListing?.price && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Price</div>
@@ -1234,7 +1308,24 @@ export default function ListingsPage() {
                 )}
               </div>
 
-              {!hasMsrpOrInvoice(selectedListing) && selectedListing.retailListing?.price && (
+              {hasListedPriceButNoRetailPrice(selectedListing) && (
+                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                        No Retail Price Available
+                      </p>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                        This listing has a listed price (${getListedPrice(selectedListing).toLocaleString()}) but no retail price. The listed price will be used as the negotiated price when added to the calculator.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {!hasMsrpOrInvoice(selectedListing) && selectedListing.retailListing?.price && !hasListedPriceButNoRetailPrice(selectedListing) && (
                 <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                   <div className="flex items-start gap-2">
                     <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1258,12 +1349,16 @@ export default function ListingsPage() {
                     setSelectedListing(null);
                   }}
                   className={`flex-1 px-6 py-3 rounded-lg font-medium transition-colors ${
-                    !hasMsrpOrInvoice(selectedListing) && selectedListing.retailListing?.price
+                    hasListedPriceButNoRetailPrice(selectedListing)
+                      ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                      : !hasMsrpOrInvoice(selectedListing) && selectedListing.retailListing?.price
                       ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
-                  {!hasMsrpOrInvoice(selectedListing) && selectedListing.retailListing?.price 
+                  {hasListedPriceButNoRetailPrice(selectedListing)
+                    ? '⚠️ Add to Calculator (No Retail Price)'
+                    : !hasMsrpOrInvoice(selectedListing) && selectedListing.retailListing?.price 
                     ? '⚠️ Add to Calculator (No MSRP/Invoice)' 
                     : 'Add to Calculator'}
                 </button>

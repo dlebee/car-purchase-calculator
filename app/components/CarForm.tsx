@@ -90,6 +90,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     } else {
       // When creating a new car, load profile defaults
       const profile = profileStorage.getProfile();
+      const defaultApr = profile.defaultApr || 0.045;
       setFormData((prev) => ({
         ...prev,
         taxRate: profile.taxRate,
@@ -97,6 +98,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
         creditScore: profile.creditScore,
         downPayment: profile.defaultDownPayment || 0,
         termLength: profile.defaultTermLength || 60,
+        apr: defaultApr,
       }));
       setStringValues((prev) => ({
         ...prev,
@@ -105,6 +107,7 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
         creditScore: profile.creditScore.toString(),
         downPayment: (profile.defaultDownPayment || 0).toString(),
         termLength: (profile.defaultTermLength || 60).toString(),
+        apr: (defaultApr * 100).toFixed(2), // Convert to percentage for display
       }));
     }
   }, [car]);
