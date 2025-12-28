@@ -428,10 +428,14 @@ export default function ListingsPage() {
       const makeSpecificApr = makeAprStorage.getRate(listing.vehicle.make, defaultTermLength);
       const finalApr = makeSpecificApr !== null ? makeSpecificApr : (profile.defaultApr || 0.045);
       
-      // Calculate tax using profile defaults (use negotiated price for tax calculation)
+      // Calculate tax using profile defaults
+      // In Florida: Tax is calculated on Negotiated Price + Dealer Fees + Other Fees (Government fees are NOT taxable)
       const taxRate = profile.taxRate || 6;
       const flatTaxFee = profile.flatTaxFee || 0;
-      const tax = (finalNegotiatedPrice * taxRate) / 100 + flatTaxFee;
+      // Note: When adding from listing, fees are 0, so tax is just on negotiated price initially
+      // User will need to add fees in the form, which will recalculate tax
+      const taxableAmount = finalNegotiatedPrice; // + dealerFees + otherFees (will be 0 initially)
+      const tax = (taxableAmount * taxRate) / 100 + flatTaxFee;
       
       // Create a new car object
       const newCar: Car = {

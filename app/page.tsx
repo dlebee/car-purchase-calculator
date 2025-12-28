@@ -300,12 +300,6 @@ export default function Home() {
                 Compare Cars
               </Link>
               <Link
-                href="/compare-visual"
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
-              >
-                Visual Comparison
-              </Link>
-              <Link
                 href="/listings"
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
               >

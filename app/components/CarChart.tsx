@@ -387,20 +387,51 @@ export default function CarChart({
               <span className="text-gray-600 dark:text-gray-400">Negotiated Price:</span>
               <span className="font-semibold text-gray-900 dark:text-white">${car.negotiatedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
+            {car.dealerFees > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">+ Dealer Fees:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">${car.dealerFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            {car.governmentFees > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">+ Government Fees <span className="text-[9px] text-gray-500 dark:text-gray-400">(not taxable)</span>:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">${car.governmentFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            {car.otherFees > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">+ Other Fees:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">${car.otherFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            {metrics.totalTax > 0 && (
+              <>
+                {car.taxRate > 0 && (car.negotiatedPrice + (car.dealerFees || 0) + (car.otherFees || 0)) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">+ Tax ({car.taxRate.toFixed(2)}%):</span>
+                    <div className="text-right">
+                      <span className="font-semibold text-gray-900 dark:text-white">${((car.negotiatedPrice + (car.dealerFees || 0) + (car.otherFees || 0)) * car.taxRate / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <div className="text-[9px] text-gray-500 dark:text-gray-400">(on price + dealer + other fees)</div>
+                    </div>
+                  </div>
+                )}
+                {car.flatTaxFee > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">+ Flat Tax Fee:</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">${car.flatTaxFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+              </>
+            )}
+            <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-1 font-semibold">
+              <span className="text-gray-700 dark:text-gray-300">Total Invoice Amount:</span>
+              <span className="text-blue-600 dark:text-blue-400">${(car.negotiatedPrice + metrics.totalAllFees + metrics.totalTax).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
             {carWithOverride.downPayment > 0 && (
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">- Down Payment:</span>
                 <span className="font-semibold text-gray-900 dark:text-white">${carWithOverride.downPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              </div>
-            )}
-            <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-1">
-              <span className="text-gray-600 dark:text-gray-400">Adjusted Cost:</span>
-              <span className="font-semibold text-gray-900 dark:text-white">${metrics.adjustedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
-            {metrics.totalTax > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">+ Tax ({car.taxRate.toFixed(2)}%):</span>
-                <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-1 font-semibold">
@@ -411,12 +442,6 @@ export default function CarChart({
               <span className="text-gray-600 dark:text-gray-400">+ Total Interest ({carWithOverride.apr > 0 ? (carWithOverride.apr * 100).toFixed(2) : '0.00'}% APR):</span>
               <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
-            {metrics.totalAllFees > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">+ Total Fees:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">${metrics.totalAllFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              </div>
-            )}
             <div className="flex justify-between border-t-2 border-gray-400 dark:border-gray-500 pt-2 font-bold">
               <span className="text-gray-900 dark:text-white">Total Cost:</span>
               <span className="text-gray-900 dark:text-white">${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>

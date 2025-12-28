@@ -155,26 +155,59 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
       if (name === 'buyRateApr') {
         return { ...prev, [name]: numValue / 100 };
       }
-      // Tax rate - calculate tax amount from negotiated price + flat tax fee
+      // Tax rate - calculate tax amount from taxable amount (negotiated price + dealer fees + other fees) + flat tax fee
       if (name === 'taxRate') {
         const negotiatedPrice = prev.negotiatedPrice || 0;
+        const dealerFees = prev.dealerFees || 0;
+        const otherFees = prev.otherFees || 0;
         const flatTaxFee = prev.flatTaxFee || 0;
-        const taxAmount = (negotiatedPrice * numValue) / 100 + flatTaxFee;
+        const taxableAmount = negotiatedPrice + dealerFees + otherFees;
+        const taxAmount = (taxableAmount * numValue) / 100 + flatTaxFee;
         return { ...prev, taxRate: numValue, tax: taxAmount };
       }
       // Flat tax fee - recalculate tax amount
       if (name === 'flatTaxFee') {
         const negotiatedPrice = prev.negotiatedPrice || 0;
+        const dealerFees = prev.dealerFees || 0;
+        const otherFees = prev.otherFees || 0;
         const taxRate = prev.taxRate || 0;
-        const taxAmount = (negotiatedPrice * taxRate) / 100 + numValue;
+        const taxableAmount = negotiatedPrice + dealerFees + otherFees;
+        const taxAmount = (taxableAmount * taxRate) / 100 + numValue;
         return { ...prev, flatTaxFee: numValue, tax: taxAmount };
       }
       // When negotiated price changes, recalculate tax if tax rate is set
       if (name === 'negotiatedPrice') {
+        const dealerFees = prev.dealerFees || 0;
+        const otherFees = prev.otherFees || 0;
         const taxRate = prev.taxRate || 0;
         const flatTaxFee = prev.flatTaxFee || 0;
-        const taxAmount = (numValue * taxRate) / 100 + flatTaxFee;
+        const taxableAmount = numValue + dealerFees + otherFees;
+        const taxAmount = (taxableAmount * taxRate) / 100 + flatTaxFee;
         return { ...prev, negotiatedPrice: numValue, tax: taxAmount };
+      }
+      // When dealer fees change, recalculate tax (dealer fees are taxable)
+      if (name === 'dealerFees') {
+        const negotiatedPrice = prev.negotiatedPrice || 0;
+        const otherFees = prev.otherFees || 0;
+        const taxRate = prev.taxRate || 0;
+        const flatTaxFee = prev.flatTaxFee || 0;
+        const taxableAmount = negotiatedPrice + numValue + otherFees;
+        const taxAmount = (taxableAmount * taxRate) / 100 + flatTaxFee;
+        return { ...prev, dealerFees: numValue, tax: taxAmount };
+      }
+      // When other fees change, recalculate tax (other fees are taxable)
+      if (name === 'otherFees') {
+        const negotiatedPrice = prev.negotiatedPrice || 0;
+        const dealerFees = prev.dealerFees || 0;
+        const taxRate = prev.taxRate || 0;
+        const flatTaxFee = prev.flatTaxFee || 0;
+        const taxableAmount = negotiatedPrice + dealerFees + numValue;
+        const taxAmount = (taxableAmount * taxRate) / 100 + flatTaxFee;
+        return { ...prev, otherFees: numValue, tax: taxAmount };
+      }
+      // Government fees don't affect tax calculation (not taxable)
+      if (name === 'governmentFees') {
+        return { ...prev, governmentFees: numValue };
       }
       // All other numeric fields
       return { ...prev, [name]: numValue };
@@ -189,9 +222,12 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
     e.preventDefault();
       // Parse all string values to numbers
     const negotiatedPrice = parseFloat(stringValues.negotiatedPrice) || 0;
+    const dealerFees = parseFloat(stringValues.dealerFees) || 0;
+    const otherFees = parseFloat(stringValues.otherFees) || 0;
     const taxRate = parseFloat(stringValues.taxRate) || 0;
     const flatTaxFee = parseFloat(stringValues.flatTaxFee) || 0;
-    const calculatedTax = (negotiatedPrice * taxRate) / 100 + flatTaxFee;
+    const taxableAmount = negotiatedPrice + dealerFees + otherFees;
+    const calculatedTax = (taxableAmount * taxRate) / 100 + flatTaxFee;
     
     const carToSave: Car = {
       id: car?.id || '',
@@ -747,12 +783,15 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                 </p>
                 {formData.taxRate && formData.taxRate > 0 && formData.negotiatedPrice && formData.negotiatedPrice > 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Total tax: ${((formData.negotiatedPrice * formData.taxRate) / 100 + (formData.flatTaxFee || 0)).toFixed(2)}
+                    Total tax: ${(((formData.negotiatedPrice + (formData.dealerFees || 0) + (formData.otherFees || 0)) * formData.taxRate) / 100 + (formData.flatTaxFee || 0)).toFixed(2)}
                     {formData.flatTaxFee && formData.flatTaxFee > 0 && (
                       <span className="ml-1">
-                        ({(formData.negotiatedPrice * formData.taxRate / 100).toFixed(2)} + {formData.flatTaxFee.toFixed(2)})
+                        ({((formData.negotiatedPrice + (formData.dealerFees || 0) + (formData.otherFees || 0)) * formData.taxRate / 100).toFixed(2)} + {formData.flatTaxFee.toFixed(2)})
                       </span>
                     )}
+                    <span className="block mt-1 text-[10px]">
+                      (Tax on: Negotiated Price + Dealer Fees + Other Fees; Government fees are not taxable)
+                    </span>
                   </p>
                 )}
               </div>

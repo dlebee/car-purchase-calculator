@@ -18,15 +18,26 @@ export function calculateMonthlyPayment(
 }
 
 export function calculatePaymentSchedule(car: Car): PaymentScheduleEntry[] {
+  // Calculate total fees by category
+  const totalDealerFees = car.dealerFees || 0;
+  const totalGovernmentFees = car.governmentFees || 0;
+  const totalOtherFees = car.otherFees || 0;
+  const totalFees = totalDealerFees + totalGovernmentFees + totalOtherFees;
+  
+  // In Florida: Tax is calculated on Negotiated Price + Dealer Fees + Other Fees
+  // Government fees are NOT taxable
+  const taxableAmount = car.negotiatedPrice + totalDealerFees + totalOtherFees;
+  
   // Ensure tax is calculated from taxRate if taxRate exists
   let calculatedTax = car.tax;
-  if (car.taxRate && car.taxRate > 0 && car.negotiatedPrice > 0) {
-    calculatedTax = (car.negotiatedPrice * car.taxRate) / 100 + (car.flatTaxFee || 0);
+  if (car.taxRate && car.taxRate > 0 && taxableAmount > 0) {
+    calculatedTax = (taxableAmount * car.taxRate) / 100 + (car.flatTaxFee || 0);
   } else if (car.flatTaxFee && car.flatTaxFee > 0) {
     calculatedTax = car.flatTaxFee;
   }
   
-  const principal = car.negotiatedPrice + calculatedTax - car.downPayment;
+  // Principal = Negotiated Price + All Fees + Tax - Down Payment
+  const principal = car.negotiatedPrice + totalFees + calculatedTax - car.downPayment;
   const monthlyRate = car.apr / 12;
   const monthlyPayment = calculateMonthlyPayment(principal, car.apr, car.termLength);
   
@@ -57,15 +68,26 @@ export function calculatePaymentSchedule(car: Car): PaymentScheduleEntry[] {
 }
 
 export function calculateCarMetrics(car: Car): CarCalculations {
+  // Calculate total fees by category
+  const totalDealerFees = car.dealerFees || 0;
+  const totalGovernmentFees = car.governmentFees || 0;
+  const totalOtherFees = car.otherFees || 0;
+  const totalFees = totalDealerFees + totalGovernmentFees + totalOtherFees;
+  
+  // In Florida: Tax is calculated on Negotiated Price + Dealer Fees + Other Fees
+  // Government fees are NOT taxable
+  const taxableAmount = car.negotiatedPrice + totalDealerFees + totalOtherFees;
+  
   // Ensure tax is calculated from taxRate if taxRate exists
   let calculatedTax = car.tax;
-  if (car.taxRate && car.taxRate > 0 && car.negotiatedPrice > 0) {
-    calculatedTax = (car.negotiatedPrice * car.taxRate) / 100 + (car.flatTaxFee || 0);
+  if (car.taxRate && car.taxRate > 0 && taxableAmount > 0) {
+    calculatedTax = (taxableAmount * car.taxRate) / 100 + (car.flatTaxFee || 0);
   } else if (car.flatTaxFee && car.flatTaxFee > 0) {
     calculatedTax = car.flatTaxFee;
   }
   
-  const principal = car.negotiatedPrice + calculatedTax - car.downPayment;
+  // Principal = Negotiated Price + All Fees + Tax - Down Payment
+  const principal = car.negotiatedPrice + totalFees + calculatedTax - car.downPayment;
   const monthlyPayment = calculateMonthlyPayment(principal, car.apr, car.termLength);
   
   // Calculate monthly tax portion (tax is already included in principal/loan, this shows the tax portion of monthly payment)
@@ -87,14 +109,8 @@ export function calculateCarMetrics(car: Car): CarCalculations {
   const totalTax = calculatedTax;
   
   // Cost breakdown
-  const adjustedCost = car.negotiatedPrice - car.downPayment; // Amount that needs financing (before tax)
-  const financedAmount = principal; // Adjusted cost + tax (actual amount being financed)
-  
-  // Calculate total fees by category
-  const totalDealerFees = car.dealerFees || 0;
-  const totalGovernmentFees = car.governmentFees || 0;
-  const totalOtherFees = car.otherFees || 0;
-  const totalFees = totalDealerFees + totalGovernmentFees + totalOtherFees;
+  const adjustedCost = car.negotiatedPrice - car.downPayment; // Amount that needs financing (before fees and tax)
+  const financedAmount = principal; // Negotiated Price + All Fees + Tax - Down Payment
   
   // Total cost = down payment + financed amount + total interest + total fees
   const totalCost = car.downPayment + financedAmount + totalInterest + totalFees;
