@@ -400,10 +400,15 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
                   className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider min-w-[120px] bg-gray-50 dark:bg-gray-700"
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                       <span className="text-xs font-semibold">
                         {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
                       </span>
+                      {car.dealership && (
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 break-words">
+                          {car.dealership}
+                        </span>
+                      )}
                     </div>
                     {onDeleteCar && (
                       <button
