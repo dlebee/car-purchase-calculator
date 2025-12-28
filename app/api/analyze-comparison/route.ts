@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
         governmentFees: car.governmentFees || 0,
         otherFees: car.otherFees || 0,
         totalFees: car.metrics.totalAllFees,
+        notes: car.notes,
         dealerFinancingMarkup: car.metrics.dealerFinancingMarkupCost || 0,
         warranty: warrantyInfo,
         expectedResidualRange: residualRange ? {
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
                 content += `\n            \n            OWNERSHIP CONSIDERATIONS:
             - Cars with >100 miles are considered second owner vehicles
             - Second owner vehicles may have reduced or non-transferrable warranties
-            - Consider warranty transferability when comparing vehicles`;
+            - Consider warranty transferability when comparing vehicles (read notes if certified pre-owned or not and impact on warranty coverage)`;
               }
               
               if (hasHighMileageVehicles) {
@@ -326,7 +327,7 @@ Provide a comprehensive analysis comparing these vehicles, highlighting the best
           },
         ],
         temperature: 0.7,
-        max_tokens: 1500,
+        max_tokens: 8000,
       }),
     });
 
