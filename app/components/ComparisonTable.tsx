@@ -387,11 +387,11 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
           Export to CSV
         </button>
       </div>
-      <div className="max-h-[70vh] overflow-y-auto">
+      <div>
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0 z-20">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-700 z-30">
+              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider bg-gray-50 dark:bg-gray-700">
                 Field
               </th>
               {cars.map((car, index) => (
@@ -432,7 +432,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
           {fields.map((field) => (
             <tr key={field.label} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-              <td className="px-2 py-1.5 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-white sticky left-0 bg-white dark:bg-gray-800 z-10">
+              <td className="px-2 py-1.5 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-800">
                 {field.label}
               </td>
               {cars.map((car, index) => {
@@ -510,7 +510,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
           
           {monthlyFields.map((field) => (
             <tr key={field.label} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-              <td className="px-2 py-1.5 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-white sticky left-0 bg-white dark:bg-gray-800 z-10">
+              <td className="px-2 py-1.5 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-800">
                 {field.label}
               </td>
               {cars.map((car, index) => {
