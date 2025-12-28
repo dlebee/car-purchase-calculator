@@ -10,9 +10,10 @@ interface ComparisonTableProps {
   aprOverride?: number;
   onExportCSV?: () => void;
   onDeleteCar?: (carId: string) => void;
+  onExportForAI?: () => any; // Callback to get export data for AI analysis
 }
 
-export default function ComparisonTable({ cars, downPaymentOverride, termOverride, aprOverride, onExportCSV, onDeleteCar }: ComparisonTableProps) {
+export default function ComparisonTable({ cars, downPaymentOverride, termOverride, aprOverride, onExportCSV, onDeleteCar, onExportForAI }: ComparisonTableProps) {
   if (cars.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
@@ -108,9 +109,6 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     
     // Totals
     { label: 'Total Cost', key: 'totalCost', format: 'currency', calculated: true },
-    
-    // Additional Info
-    { label: 'Credit Score', key: 'creditScore' as keyof Car },
   ];
 
   const formatValue = (
@@ -232,16 +230,29 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
   };
 
   const formatValueForCSV = (value: any, format?: string): string => {
+    // Handle null, undefined, empty string, or NaN
     if (value === null || value === undefined || value === '') {
       return '';
     }
 
+    // Check for NaN (both number and string 'NaN')
+    if (typeof value === 'number' && isNaN(value)) {
+      return '';
+    }
+    const stringValue = String(value);
+    if (stringValue === 'NaN' || stringValue === 'undefined' || stringValue === 'null') {
+      return '';
+    }
+
     if (format === 'currency') {
-      return Number(value).toFixed(2);
+      const numValue = Number(value);
+      if (isNaN(numValue)) return '';
+      return numValue.toFixed(2);
     }
 
     if (format === 'percentage') {
       const numValue = Number(value);
+      if (isNaN(numValue)) return '';
       if (numValue > 1 || numValue === 0) {
         return numValue.toFixed(2);
       } else {
@@ -250,11 +261,12 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     }
 
     if (format === 'number') {
-      return Number(value).toString();
+      const numValue = Number(value);
+      if (isNaN(numValue)) return '';
+      return numValue.toString();
     }
 
-    // Escape commas and quotes for CSV
-    const stringValue = String(value);
+    // For string values, escape commas and quotes for CSV
     if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
       return `"${stringValue.replace(/"/g, '""')}"`;
     }
@@ -300,17 +312,29 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       cars.forEach((car, index) => {
         const carWithOverride = carsWithOverride[index];
         const originalCar = cars[index];
-        const value = getValue(carWithOverride, allMetrics[index], field, originalCar);
-        const difference = getDifference(field, value, allMetrics[index]);
-        const showDifference = difference !== null && index > 0 && Math.abs(difference) > 0.01;
         
-        let cellValue = formatValueForCSV(value, field.format || 'number');
-        if (showDifference) {
-          const diffStr = formatValueForCSV(difference, field.format);
-          cellValue += ` (${difference > 0 ? '+' : ''}${diffStr})`;
+        // For non-calculated fields, get value directly from car
+        let value: any;
+        if (field.calculated) {
+          value = getValue(carWithOverride, allMetrics[index], field, originalCar);
+        } else {
+          // Get value directly from car object
+          value = originalCar[field.key as keyof Car];
+          // Handle undefined/null/empty string/NaN
+          if (value === undefined || value === null || value === '') {
+            value = '';
+          } else if (typeof value === 'number' && isNaN(value)) {
+            value = '';
+          } else if (String(value) === 'NaN') {
+            value = '';
+          }
         }
         
-        // Add override indicator for overridden fields
+        // Use format if specified, otherwise infer from value type
+        const formatToUse = field.format || (typeof value === 'number' ? 'number' : undefined);
+        let cellValue = formatValueForCSV(value, formatToUse);
+        
+        // Add override indicator for overridden fields (but not difference indicators in CSV)
         const isOverridden = 
           (field.key === 'downPayment' && downPaymentOverride !== undefined) ||
           (field.key === 'termLength' && termOverride !== undefined) ||
