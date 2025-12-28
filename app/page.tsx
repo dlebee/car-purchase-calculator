@@ -46,6 +46,7 @@ export default function Home() {
           flatTaxFee: 0,
           tax: 0,
           creditScore: 0,
+          seats: 0,
           downPayment: 0,
           dealerFees: 0,
           governmentFees: 0,
