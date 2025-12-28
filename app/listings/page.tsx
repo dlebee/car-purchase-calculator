@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import carStorage from '@/lib/carStorage';
 import profileStorage from '@/lib/profileStorage';
+import makeAprStorage from '@/lib/makeAprStorage';
 import ProfileModal from '@/app/components/ProfileModal';
 import { Car } from '@/lib/types';
 import { calculateMonthlyPayment } from '@/lib/carCalculations';
@@ -421,6 +422,11 @@ export default function ListingsPage() {
       
       // Get profile defaults
       const profile = profileStorage.getProfile();
+      const defaultTermLength = profile.defaultTermLength || 60;
+      
+      // Try to get make-specific APR for this term length, otherwise use default APR
+      const makeSpecificApr = makeAprStorage.getRate(listing.vehicle.make, defaultTermLength);
+      const finalApr = makeSpecificApr !== null ? makeSpecificApr : (profile.defaultApr || 0.045);
       
       // Calculate tax using profile defaults (use negotiated price for tax calculation)
       const taxRate = profile.taxRate || 6;
@@ -438,9 +444,9 @@ export default function ListingsPage() {
         dealership: listing.retailListing?.dealer || listing.retailListing?.dealership?.name || '',
         listedPrice: finalListedPrice,
         negotiatedPrice: finalNegotiatedPrice,
-        apr: profile.defaultApr || 0.045, // Use profile default or 4.5% APR
+        apr: finalApr,
         buyRateApr: 0,
-        termLength: profile.defaultTermLength || 60, // Use profile default or 60 months
+        termLength: defaultTermLength,
         notes: notesParts.join(' | '),
         taxRate: taxRate,
         flatTaxFee: flatTaxFee,

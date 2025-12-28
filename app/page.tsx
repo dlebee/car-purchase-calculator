@@ -8,6 +8,7 @@ import CarForm from './components/CarForm';
 import CarChart from './components/CarChart';
 import ProfileModal from './components/ProfileModal';
 import profileStorage from '@/lib/profileStorage';
+import makeAprStorage from '@/lib/makeAprStorage';
 import Link from 'next/link';
 
 export default function Home() {
@@ -143,30 +144,26 @@ export default function Home() {
     setSelectedCar(car);
   };
 
-  const handleFixEmptyTermsAndAPR = () => {
-    const allCars = carStorage.getAllCars();
-    let updatedCount = 0;
-    
+  const handleExportProfileAndMakeApr = () => {
     const profile = profileStorage.getProfile();
-    const defaultTermLength = profile.defaultTermLength || 60;
-    const defaultApr = profile.defaultApr || 0.045;
+    const makeAprRates = makeAprStorage.getAllRates();
     
-    allCars.forEach((car) => {
-      // Check if car has empty term length (0) and empty APR (0)
-      if (car.termLength === 0 && car.apr === 0) {
-        car.termLength = defaultTermLength;
-        car.apr = defaultApr;
-        carStorage.saveCar(car);
-        updatedCount++;
-      }
-    });
+    const exportData = {
+      profile,
+      makeAprRates,
+      exportedAt: new Date().toISOString(),
+    };
     
-    if (updatedCount > 0) {
-      alert(`Updated ${updatedCount} car${updatedCount > 1 ? 's' : ''} with default values (${defaultTermLength} months, ${(defaultApr * 100).toFixed(1)}% APR)`);
-      loadCars(); // Reload to refresh the UI
-    } else {
-      alert('No cars found with empty term length and APR.');
-    }
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cpc-profile-and-make-apr-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleExportAll = () => {
@@ -255,6 +252,12 @@ export default function Home() {
               >
                 Search Listings
               </Link>
+              <Link
+                href="/make-apr"
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+              >
+                Make APR Rates
+              </Link>
             </div>
           </div>
         </div>
@@ -280,11 +283,10 @@ export default function Home() {
             Import All Cars
           </button>
           <button
-            onClick={handleFixEmptyTermsAndAPR}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            disabled={cars.length === 0}
+            onClick={handleExportProfileAndMakeApr}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
           >
-            Fix Empty Terms & APR
+            Export Profile & Make APR
           </button>
         </div>
 
