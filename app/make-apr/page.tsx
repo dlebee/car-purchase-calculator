@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import makeAprStorage, { MakeAprRate } from '@/lib/makeAprStorage';
 
-const COMMON_TERM_LENGTHS = [36, 48, 60, 72, 84];
+const COMMON_TERM_LENGTHS = [36, 48, 60, 66, 72, 84];
 
 export default function MakeAprPage() {
   const [rates, setRates] = useState<MakeAprRate[]>([]);

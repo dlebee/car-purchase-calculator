@@ -65,9 +65,9 @@ export default function CarChart({
   const today = new Date();
   const firstDayNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   
-  // Generate comparison terms (e.g., if selected is 48, show 36, 48, 60, 72)
+  // Generate comparison terms (e.g., if selected is 48, show 36, 48, 60, 66, 72)
   const selectedTerm = carWithOverride.termLength;
-  const availableTerms = [36, 48, 60, 72];
+  const availableTerms = [36, 48, 60, 66, 72];
   const comparisonTerms = availableTerms.filter(term => term !== selectedTerm).slice(0, 3);
   const allTerms = [selectedTerm, ...comparisonTerms].sort((a, b) => a - b);
   
