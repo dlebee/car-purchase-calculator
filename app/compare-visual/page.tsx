@@ -219,16 +219,21 @@ export default function CompareVisualPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-              Visual Car Comparison
-            </h1>
-            <Link
-              href="/"
-              className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
-            >
-              Back to Main
-            </Link>
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white md:w-1/4">
+                CPC
+              </h1>
+              <div className="flex flex-wrap gap-2 items-center md:w-3/4 md:justify-end">
+                <Link
+                  href="/"
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap self-start md:self-auto"
+                >
+                  Back to Main
+                </Link>
+              </div>
+            </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center text-gray-500 dark:text-gray-400">
             Select cars to compare visually
@@ -241,23 +246,26 @@ export default function CompareVisualPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Visual Car Comparison
-          </h1>
-          <div className="flex gap-3">
-            <Link
-              href="/compare"
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors"
-            >
-              Table View
-            </Link>
-            <Link
-              href="/"
-              className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors"
-            >
-              Back to Main
-            </Link>
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white md:w-1/4">
+              CPC
+            </h1>
+            <div className="flex flex-wrap gap-2 items-center md:w-3/4 md:justify-end self-start md:self-auto">
+              <Link
+                href="/compare"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+              >
+                Table View
+              </Link>
+              <Link
+                href="/"
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+              >
+                Back to Main
+              </Link>
+            </div>
           </div>
         </div>
 

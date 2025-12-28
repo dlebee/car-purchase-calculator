@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Car Purchase Calculator",
+  title: "CPC",
   description: "Calculate and compare car purchase costs, payments, and interest",
 };
 

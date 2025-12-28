@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Car } from '@/lib/types';
 import carStorage from '@/lib/carStorage';
+import profileStorage from '@/lib/profileStorage';
 
 // Florida fee defaults and expected ranges
 const FLORIDA_FEE_RANGES = {
@@ -86,6 +87,21 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
         governmentFees: car.governmentFees ? car.governmentFees.toString() : '',
         otherFees: car.otherFees ? car.otherFees.toString() : '',
       });
+    } else {
+      // When creating a new car, load profile defaults
+      const profile = profileStorage.getProfile();
+      setFormData((prev) => ({
+        ...prev,
+        taxRate: profile.taxRate,
+        flatTaxFee: profile.flatTaxFee,
+        creditScore: profile.creditScore,
+      }));
+      setStringValues((prev) => ({
+        ...prev,
+        taxRate: profile.taxRate.toString(),
+        flatTaxFee: profile.flatTaxFee.toString(),
+        creditScore: profile.creditScore.toString(),
+      }));
     }
   }, [car]);
 

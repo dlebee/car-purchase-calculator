@@ -6,6 +6,8 @@ import carStorage from '@/lib/carStorage';
 import CarCard from './components/CarCard';
 import CarForm from './components/CarForm';
 import CarChart from './components/CarChart';
+import ProfileModal from './components/ProfileModal';
+import profileStorage from '@/lib/profileStorage';
 import Link from 'next/link';
 
 export default function Home() {
@@ -16,6 +18,7 @@ export default function Home() {
   const [downPaymentOverride, setDownPaymentOverride] = useState<string>('');
   const [aprOverride, setAprOverride] = useState<string>('');
   const [termOverride, setTermOverride] = useState<string>('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     loadCars();
@@ -25,6 +28,8 @@ export default function Home() {
     if (listingData) {
       try {
         const listing = JSON.parse(listingData);
+        // Get profile defaults
+        const profile = profileStorage.getProfile();
         // Create a partial car object from the listing
         const partialCar: Partial<Car> = {
           vin: listing.vin,
@@ -42,10 +47,10 @@ export default function Home() {
           buyRateApr: 0,
           termLength: 0,
           notes: '',
-          taxRate: 0,
-          flatTaxFee: 0,
+          taxRate: profile.taxRate || 0,
+          flatTaxFee: profile.flatTaxFee || 0,
           tax: 0,
-          creditScore: 0,
+          creditScore: profile.creditScore || 0,
           seats: 0,
           downPayment: 0,
           dealerFees: 0,
@@ -210,29 +215,43 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold text-center mb-2 text-gray-900 dark:text-white">
-            Car Purchase Calculator
-          </h1>
-          <div className="flex gap-3">
-            <Link
-              href="/compare"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-            >
-              Compare Cars
-            </Link>
-            <Link
-              href="/compare-visual"
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
-            >
-              Visual Comparison
-            </Link>
-            <Link
-              href="/listings"
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors"
-            >
-              Search Listings
-            </Link>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white md:w-1/4">
+              CPC
+            </h1>
+            <div className="flex flex-wrap gap-2 items-center md:w-3/4 md:justify-end">
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-all flex items-center gap-2 shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+                title="Profile Settings"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Profile
+              </button>
+              <Link
+                href="/compare"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+              >
+                Compare Cars
+              </Link>
+              <Link
+                href="/compare-visual"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+              >
+                Visual Comparison
+              </Link>
+              <Link
+                href="/listings"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+              >
+                Search Listings
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -326,6 +345,11 @@ export default function Home() {
           onCancel={handleCancelForm}
         />
       )}
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </div>
   );
 }

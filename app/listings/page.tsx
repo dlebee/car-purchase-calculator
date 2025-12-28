@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import carStorage from '@/lib/carStorage';
+import profileStorage from '@/lib/profileStorage';
+import ProfileModal from '@/app/components/ProfileModal';
 import { Car } from '@/lib/types';
 import { calculateMonthlyPayment } from '@/lib/carCalculations';
 
@@ -125,6 +127,7 @@ export default function ListingsPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [showRawJson, setShowRawJson] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Load cached search results on mount
   useEffect(() => {
@@ -381,6 +384,14 @@ export default function ListingsPage() {
         notesParts.unshift('⚠️ WARNING: MSRP/Invoice data not available. Using retail price for both listed and negotiated prices.');
       }
       
+      // Get profile defaults
+      const profile = profileStorage.getProfile();
+      
+      // Calculate tax using profile defaults
+      const taxRate = profile.taxRate || 6;
+      const flatTaxFee = profile.flatTaxFee || 0;
+      const tax = (retailPrice * taxRate) / 100 + flatTaxFee;
+      
       // Create a new car object
       const newCar: Car = {
         id: crypto.randomUUID(),
@@ -398,10 +409,10 @@ export default function ListingsPage() {
         buyRateApr: 0,
         termLength: 60, // Default 60 months
         notes: notesParts.join(' | '),
-        taxRate: 6, // Default 6% tax rate
-        flatTaxFee: 0,
-        tax: (retailPrice * 6) / 100, // Calculate tax: 6% of negotiated price
-        creditScore: 0,
+        taxRate: taxRate,
+        flatTaxFee: flatTaxFee,
+        tax: tax,
+        creditScore: profile.creditScore || 0,
         mileage: listing.retailListing?.miles !== undefined ? listing.retailListing.miles : 0,
         seats: listing.vehicle.seats,
         downPayment: 0,
@@ -427,16 +438,32 @@ export default function ListingsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Vehicle Listings Search
-          </h1>
-          <Link
-            href="/"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-          >
-            Back to Calculator
-          </Link>
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white md:w-1/4">
+              CPC
+            </h1>
+            <div className="flex flex-wrap gap-2 items-center md:w-3/4 md:justify-end">
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-all flex items-center gap-2 shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+                title="Profile Settings"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Profile
+              </button>
+              <Link
+                href="/"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap"
+              >
+                Back to Calculator
+              </Link>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
@@ -1251,6 +1278,11 @@ export default function ListingsPage() {
           </div>
         </div>
       )}
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </div>
   );
 }
