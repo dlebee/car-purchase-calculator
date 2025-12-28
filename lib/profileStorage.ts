@@ -7,6 +7,7 @@ export interface UserProfile {
   defaultDownPayment: number;
   defaultTermLength: number;
   defaultApr: number; // APR as decimal (e.g., 0.045 for 4.5%)
+  feeRecommendations: string; // Custom fee recommendations/notes
 }
 
 const PROFILE_STORAGE_KEY = 'car-purchase-calculator-profile';
@@ -22,6 +23,7 @@ class ProfileStorage {
       defaultDownPayment: 0,
       defaultTermLength: 60,
       defaultApr: 0.045, // 4.5% default APR
+      feeRecommendations: '',
     };
   }
 

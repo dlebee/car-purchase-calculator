@@ -22,6 +22,13 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
   const [isFetchingCar, setIsFetchingCar] = useState(false);
   const [vinFetchStatus, setVinFetchStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [vinFetchError, setVinFetchError] = useState<string>('');
+  const [profileFeeRecommendations, setProfileFeeRecommendations] = useState<string>('');
+  
+  // Load profile fee recommendations
+  useEffect(() => {
+    const profile = profileStorage.getProfile();
+    setProfileFeeRecommendations(profile.feeRecommendations || '');
+  }, []);
   
   // Store string values for numeric inputs to preserve decimal points during typing
   const [stringValues, setStringValues] = useState<Record<string, string>>({
@@ -551,6 +558,16 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
                     💰 Tip: Always ask "Can you waive the dealer fees?" - Many dealers will reduce or eliminate them to close the deal.
                   </p>
                 </blockquote>
+                {profileFeeRecommendations && (
+                  <blockquote className="border-l-4 border-green-500 dark:border-green-400 pl-4 py-2 my-4 bg-green-50 dark:bg-green-900/20 rounded-r-lg">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                      📝 Your Custom Recommendations:
+                    </p>
+                    <div className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                      {profileFeeRecommendations}
+                    </div>
+                  </blockquote>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
