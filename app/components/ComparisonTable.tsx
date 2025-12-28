@@ -41,6 +41,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     // Cost Breakdown
     { label: 'Listed Price', key: 'listedPrice' as keyof Car, format: 'currency' },
     { label: 'Discount', key: 'discount', format: 'currency', calculated: true, showPercent: true },
+    { label: 'Negotiated Price', key: 'negotiatedPrice' as keyof Car, format: 'currency' },
     { label: 'Total Fees', key: 'totalAllFees', format: 'currency', calculated: true },
     { label: 'Total Taxes', key: 'totalTax', format: 'currency', calculated: true },
     { label: 'Down Payment', key: 'downPayment' as keyof Car, format: 'currency' },
@@ -182,6 +183,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
   const fieldsWithDifferences = [
     'listedPrice',
     'discount',
+    'negotiatedPrice',
     'totalAllFees',
     'totalTax',
     'downPayment',
@@ -190,6 +192,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     'averageAnnualInterest',
     'totalCost',
     'monthlyPayment',
+    'monthlyPaymentWithTax',
   ];
 
   const getDifference = (
@@ -214,6 +217,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       else return null;
     } else {
       if (field.key === 'listedPrice') baselineValue = baselineCar.listedPrice;
+      else if (field.key === 'negotiatedPrice') baselineValue = baselineCar.negotiatedPrice;
       else if (field.key === 'downPayment') baselineValue = baselineCar.downPayment;
       else return null;
     }
