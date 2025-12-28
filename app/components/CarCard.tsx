@@ -154,6 +154,12 @@ export default function CarCard({
             <span className="font-semibold text-gray-900 dark:text-white">{car.mileage.toLocaleString()}</span>
           </div>
         )}
+        {car.seats && car.seats > 0 && (
+          <div>
+            <span className="text-gray-600 dark:text-gray-400">Seats:</span>{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">{car.seats}</span>
+          </div>
+        )}
       </div>
       <div className="mt-1 space-y-0.5">
         {car.dealership && (

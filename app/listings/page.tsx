@@ -39,6 +39,7 @@ interface Listing {
     bodyType?: string;
     baseInvoice?: number; // Base invoice price (at vehicle level)
     baseMsrp?: number; // Base MSRP (at vehicle level)
+    seats?: number; // Number of seats
   };
   retailListing?: {
     price: number;
@@ -51,7 +52,11 @@ interface Listing {
       name?: string;
       address?: string;
     };
+    carfaxUrl?: string; // Carfax report URL
+    vdpUrl?: string; // Vehicle Detail Page (VDP) URL
   };
+  carfaxUrl?: string; // Carfax report URL (may be at top level)
+  vdpUrl?: string; // Vehicle Detail Page (VDP) URL (may be at top level)
 }
 
 export default function ListingsPage() {
@@ -353,6 +358,16 @@ export default function ListingsPage() {
         notesParts.push(`Website: ${(listing.retailListing as any).website}`);
       }
       
+      // Add Carfax and VDP URLs if available
+      const carfaxUrl = listing.retailListing?.carfaxUrl || listing.carfaxUrl;
+      if (carfaxUrl) {
+        notesParts.push(`Carfax URL: ${carfaxUrl}`);
+      }
+      const vdpUrl = (listing.retailListing as any)?.vdp || listing.retailListing?.vdpUrl || (listing as any)?.vdp || listing.vdpUrl;
+      if (vdpUrl) {
+        notesParts.push(`VDP URL: ${vdpUrl}`);
+      }
+      
       // Add raw JSON data to notes
       notesParts.push(`\n--- Raw JSON Data ---\n${JSON.stringify(listing, null, 2)}`);
       
@@ -388,12 +403,15 @@ export default function ListingsPage() {
         tax: (retailPrice * 6) / 100, // Calculate tax: 6% of negotiated price
         creditScore: 0,
         mileage: listing.retailListing?.miles !== undefined ? listing.retailListing.miles : 0,
+        seats: listing.vehicle.seats,
         downPayment: 0,
         dealerFees: 0,
         governmentFees: 0,
         otherFees: 0,
         repName: '',
         repPhone: '',
+        carfaxUrl: listing.retailListing?.carfaxUrl || listing.carfaxUrl || '',
+        vdpUrl: (listing.retailListing as any)?.vdp || listing.retailListing?.vdpUrl || (listing as any)?.vdp || listing.vdpUrl || '',
       };
       
       // Add to car storage
@@ -836,6 +854,15 @@ export default function ListingsPage() {
                       </div>
                     )}
                     
+                    {listing.vehicle.seats && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Seats:</span>
+                        <span className="text-gray-900 dark:text-white">
+                          {listing.vehicle.seats}
+                        </span>
+                      </div>
+                    )}
+                    
                     {(listing.retailListing?.dealer || listing.retailListing?.dealership?.name) && (
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Dealer:</span>
@@ -1026,6 +1053,13 @@ export default function ListingsPage() {
                     </div>
                   )}
                   
+                  {selectedListing.vehicle.seats && (
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Seats:</span>
+                      <span className="ml-2 text-gray-900 dark:text-white font-medium">{selectedListing.vehicle.seats}</span>
+                    </div>
+                  )}
+                  
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Miles:</span>
                     <span className="ml-2 text-gray-900 dark:text-white font-medium">
@@ -1121,6 +1155,24 @@ export default function ListingsPage() {
                       <span className="text-gray-600 dark:text-gray-400">Website:</span>
                       <a href={(selectedListing.retailListing as any).website} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 dark:text-blue-400 hover:underline">
                         {(selectedListing.retailListing as any).website}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {(selectedListing.retailListing?.carfaxUrl || selectedListing.carfaxUrl) && (
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Carfax Report:</span>
+                      <a href={selectedListing.retailListing?.carfaxUrl || selectedListing.carfaxUrl || ''} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 dark:text-blue-400 hover:underline">
+                        View Carfax Report
+                      </a>
+                    </div>
+                  )}
+                  
+                  {((selectedListing.retailListing as any)?.vdp || (selectedListing.retailListing as any)?.vdpUrl || (selectedListing as any)?.vdp || selectedListing.vdpUrl) && (
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Vehicle Detail Page:</span>
+                      <a href={(selectedListing.retailListing as any)?.vdp || (selectedListing.retailListing as any)?.vdpUrl || (selectedListing as any)?.vdp || selectedListing.vdpUrl || ''} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 dark:text-blue-400 hover:underline">
+                        View Listing Page
                       </a>
                     </div>
                   )}

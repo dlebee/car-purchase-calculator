@@ -44,6 +44,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     { label: 'Tier', key: 'tier' as keyof Car },
     { label: 'VIN', key: 'vin' as keyof Car },
     { label: 'Mileage', key: 'mileage' as keyof Car, format: 'number' },
+    { label: 'Seats', key: 'seats' as keyof Car },
     
     // Dealership Info
     { label: 'Dealership', key: 'dealership' as keyof Car },

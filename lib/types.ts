@@ -17,6 +17,7 @@ export interface Car {
   creditScore: number; // FICO Auto Score 8
   mileage: number;
   year: number;
+  seats?: number; // Number of seats
   downPayment: number;
   dealerFees: number; // Dealer Service Fee, Pre-Delivery Service Charge, Documentation Fee, Electronic Filing Fee, etc.
   governmentFees: number; // DMV Fees, License Fees, Registration Fees, Title Transfer Fees, etc.
@@ -27,6 +28,8 @@ export interface Car {
   warrantyTransferrable?: boolean; // Whether warranty transfers to new owner
   repName?: string; // Sales representative name
   repPhone?: string; // Sales representative phone number
+  carfaxUrl?: string; // Carfax report URL
+  vdpUrl?: string; // Vehicle Detail Page (VDP) URL
 }
 
 export interface PaymentScheduleEntry {
