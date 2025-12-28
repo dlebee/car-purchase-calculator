@@ -166,6 +166,65 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
+  const handleImportProfileAndMakeApr = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const json = event.target?.result as string;
+            const data = JSON.parse(json);
+            
+            if (!data.profile && !data.makeAprRates) {
+              alert('Invalid file format. Expected profile and/or makeAprRates.');
+              return;
+            }
+            
+            if (
+              confirm(
+                'This will replace your current profile settings and make APR rates. Are you sure you want to continue?'
+              )
+            ) {
+              // Import profile if present
+              if (data.profile) {
+                profileStorage.saveProfile(data.profile);
+              }
+              
+              // Import make APR rates if present
+              if (data.makeAprRates && Array.isArray(data.makeAprRates)) {
+                // Clear existing rates and import new ones
+                const existingRates = makeAprStorage.getAllRates();
+                existingRates.forEach((rate) => {
+                  makeAprStorage.deleteRate(rate.make, rate.termLength);
+                });
+                
+                data.makeAprRates.forEach((rate: { make: string; termLength: number; apr: number }) => {
+                  if (rate.make && rate.termLength && typeof rate.apr === 'number') {
+                    makeAprStorage.saveRate({
+                      make: rate.make,
+                      termLength: rate.termLength,
+                      apr: rate.apr,
+                    });
+                  }
+                });
+              }
+              
+              alert('Profile and Make APR rates imported successfully!');
+            }
+          } catch (error) {
+            alert('Error importing file: ' + (error as Error).message);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
   const handleExportAll = () => {
     try {
       const json = carStorage.exportAllCars();
@@ -287,6 +346,12 @@ export default function Home() {
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
           >
             Export Profile & Make APR
+          </button>
+          <button
+            onClick={handleImportProfileAndMakeApr}
+            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 font-medium transition-colors"
+          >
+            Import Profile & Make APR
           </button>
         </div>
 
