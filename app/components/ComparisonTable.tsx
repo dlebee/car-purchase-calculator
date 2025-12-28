@@ -41,17 +41,19 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     // Cost Breakdown
     { label: 'Listed Price', key: 'listedPrice' as keyof Car, format: 'currency' },
     { label: 'Discount', key: 'discount', format: 'currency', calculated: true, showPercent: true },
-    { label: 'Negotiated Price', key: 'negotiatedPrice' as keyof Car, format: 'currency' },
-    { label: 'Down Payment', key: 'downPayment' as keyof Car, format: 'currency' },
-    { label: 'Adjusted Cost', key: 'adjustedCost', format: 'currency', calculated: true },
-    { label: 'Tax', key: 'totalTax', format: 'currency', calculated: true, showTaxRate: true },
-    { label: 'Financed Amount', key: 'financedAmount', format: 'currency', calculated: true },
-    { label: 'Total Interest', key: 'totalInterest', format: 'currency', calculated: true, showApr: true },
     { label: 'Total Fees', key: 'totalAllFees', format: 'currency', calculated: true },
+    { label: 'Total Taxes', key: 'totalTax', format: 'currency', calculated: true },
+    { label: 'Down Payment', key: 'downPayment' as keyof Car, format: 'currency' },
+    { label: 'Financed Amount', key: 'financedAmount', format: 'currency', calculated: true },
+    { label: 'Total Interest', key: 'totalInterest', format: 'currency', calculated: true },
+    { label: 'Avg Yearly Interest', key: 'averageAnnualInterest', format: 'currency', calculated: true },
     { label: 'Total Cost', key: 'totalCost', format: 'currency', calculated: true },
-    
-    // Monthly Payment (at bottom)
+  ];
+
+  // Monthly amounts (separate section)
+  const monthlyFields = [
     { label: 'Monthly Payment', key: 'monthlyPayment', format: 'currency', calculated: true },
+    { label: 'Monthly Payment w/ Tax', key: 'monthlyPaymentWithTax', format: 'currency', calculated: true },
   ];
 
   // All fields for CSV export (includes everything)
@@ -145,7 +147,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     return String(value);
   };
 
-  const getValue = (car: Car, metrics: ReturnType<typeof calculateCarMetrics>, field: typeof fields[0] | typeof allFieldsForExport[0], originalCar: Car): any => {
+  const getValue = (car: Car, metrics: ReturnType<typeof calculateCarMetrics>, field: typeof fields[0] | typeof monthlyFields[0] | typeof allFieldsForExport[0], originalCar: Car): any => {
     if (field.calculated) {
       if (field.key === 'monthlyPayment') return metrics.monthlyPayment;
       if (field.key === 'monthlyPaymentWithTax') return metrics.monthlyPaymentWithTax;
@@ -176,23 +178,18 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
     return metrics.discountPercent !== null && metrics.discountPercent !== undefined ? metrics.discountPercent : null;
   };
 
-  // Fields that should show differences
+  // Fields that should show differences (all fields show differences)
   const fieldsWithDifferences = [
-    'totalCost',
-    'monthlyPaymentWithTax',
+    'listedPrice',
+    'discount',
+    'totalAllFees',
+    'totalTax',
+    'downPayment',
+    'financedAmount',
     'totalInterest',
     'averageAnnualInterest',
-    'totalTax',
-    'totalAllFees',
-    'dealerFees',
-    'governmentFees',
-    'otherFees',
-    'negotiatedPrice',
-    'listedPrice',
+    'totalCost',
     'monthlyPayment',
-    'apr',
-    'taxRate',
-    'tax',
   ];
 
   const getDifference = (
@@ -216,23 +213,18 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
       else if (field.key === 'discount') baselineValue = baselineMetrics.discount;
       else return null;
     } else {
-      if (field.key === 'negotiatedPrice') baselineValue = baselineCar.negotiatedPrice;
-      else if (field.key === 'listedPrice') baselineValue = baselineCar.listedPrice;
+      if (field.key === 'listedPrice') baselineValue = baselineCar.listedPrice;
       else if (field.key === 'downPayment') baselineValue = baselineCar.downPayment;
-      else if (field.key === 'listedPrice') baselineValue = baselineCar.listedPrice;
-      else if (field.key === 'apr') baselineValue = baselineCar.apr;
-      else if (field.key === 'taxRate') baselineValue = baselineCar.taxRate;
-      else if (field.key === 'tax') baselineValue = baselineCar.tax;
-      else if (field.key === 'downPayment') baselineValue = baselineCar.downPayment;
-      else if (field.key === 'dealerFees') baselineValue = baselineCar.dealerFees;
-      else if (field.key === 'governmentFees') baselineValue = baselineCar.governmentFees;
-      else if (field.key === 'otherFees') baselineValue = baselineCar.otherFees;
-      else if (field.key === 'apr') baselineValue = baselineCar.apr;
       else return null;
     }
     
     const currentValue = typeof value === 'number' ? value : parseFloat(value) || 0;
-    return currentValue - baselineValue;
+    const diff = currentValue - baselineValue;
+    // For discount, flip the difference (negative discount is better, so show positive diff as better)
+    if (field.key === 'discount') {
+      return -diff;
+    }
+    return diff;
   };
 
   const formatValueForCSV = (value: any, format?: string): string => {
@@ -477,6 +469,59 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
           ))}
           </tbody>
         </table>
+        
+        {/* Monthly amounts section */}
+        <div className="border-t-2 border-gray-300 dark:border-gray-600 mt-2">
+          <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 px-2 py-1 bg-gray-50 dark:bg-gray-700">
+            Monthly Amounts
+          </div>
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {monthlyFields.map((field) => (
+              <tr key={field.label} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="px-2 py-1.5 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-white sticky left-0 bg-white dark:bg-gray-800 z-10">
+                  {field.label}
+                </td>
+                {cars.map((car, index) => {
+                  const carWithOverride = carsWithOverride[index];
+                  const originalCar = cars[index];
+                  const value = getValue(carWithOverride, allMetrics[index], field, originalCar);
+                  const difference = getDifference(field, value, allMetrics[index]);
+                  const showDifference = difference !== null && index > 0 && Math.abs(difference) > 0.01;
+                  const isOverridden = 
+                    (field.key === 'downPayment' && downPaymentOverride !== undefined) ||
+                    (field.key === 'termLength' && termOverride !== undefined) ||
+                    (field.key === 'apr' && aprOverride !== undefined);
+                  
+                  return (
+                    <td
+                      key={car.id}
+                      className="px-2 py-1.5 whitespace-nowrap text-xs text-gray-700 dark:text-gray-300"
+                    >
+                      <div className="flex flex-col">
+                        <span className={`text-xs ${isOverridden ? 'text-blue-600 dark:text-blue-400 font-semibold' : ''}`}>
+                          {formatValue(value, field.format)}
+                          {isOverridden && <span className="text-[10px] ml-1">(override)</span>}
+                        </span>
+                        {showDifference && (
+                          <span className={`text-[10px] mt-0.5 ${
+                            difference > 0 
+                              ? 'text-red-600 dark:text-red-400' 
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {difference > 0 ? '+' : ''}{formatValue(difference, field.format)}
+                            {difference > 0 && ' more'}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
