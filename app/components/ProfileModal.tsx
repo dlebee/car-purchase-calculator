@@ -162,6 +162,44 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               placeholder="0"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Default Down Payment ($)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={profile.defaultDownPayment || ''}
+              onChange={(e) => handleChange('defaultDownPayment', parseFloat(e.target.value) || 0)}
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+              placeholder="0.00"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
+              <span className="text-blue-500">💡</span>
+              Default down payment when adding cars from listings
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Default Term Length (months)
+            </label>
+            <input
+              type="number"
+              min="12"
+              max="84"
+              value={profile.defaultTermLength || ''}
+              onChange={(e) => handleChange('defaultTermLength', parseInt(e.target.value) || 60)}
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-all"
+              placeholder="60"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
+              <span className="text-blue-500">💡</span>
+              Default loan term length when adding cars from listings
+            </p>
+          </div>
         </div>
 
         <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">

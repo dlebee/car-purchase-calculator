@@ -95,12 +95,16 @@ export default function CarForm({ car, onSave, onCancel }: CarFormProps) {
         taxRate: profile.taxRate,
         flatTaxFee: profile.flatTaxFee,
         creditScore: profile.creditScore,
+        downPayment: profile.defaultDownPayment || 0,
+        termLength: profile.defaultTermLength || 60,
       }));
       setStringValues((prev) => ({
         ...prev,
         taxRate: profile.taxRate.toString(),
         flatTaxFee: profile.flatTaxFee.toString(),
         creditScore: profile.creditScore.toString(),
+        downPayment: (profile.defaultDownPayment || 0).toString(),
+        termLength: (profile.defaultTermLength || 60).toString(),
       }));
     }
   }, [car]);

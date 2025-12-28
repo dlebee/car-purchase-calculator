@@ -4,6 +4,8 @@ export interface UserProfile {
   zipcode: string;
   creditScore: number;
   flatTaxFee: number;
+  defaultDownPayment: number;
+  defaultTermLength: number;
 }
 
 const PROFILE_STORAGE_KEY = 'car-purchase-calculator-profile';
@@ -16,6 +18,8 @@ class ProfileStorage {
       zipcode: '',
       creditScore: 0,
       flatTaxFee: 0,
+      defaultDownPayment: 0,
+      defaultTermLength: 60,
     };
   }
 

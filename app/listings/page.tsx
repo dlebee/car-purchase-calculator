@@ -407,7 +407,7 @@ export default function ListingsPage() {
         negotiatedPrice: retailPrice, // Use retail listing price as the price we pay
         apr: 0.045, // Default 4.5% APR
         buyRateApr: 0,
-        termLength: 60, // Default 60 months
+        termLength: profile.defaultTermLength || 60, // Use profile default or 60 months
         notes: notesParts.join(' | '),
         taxRate: taxRate,
         flatTaxFee: flatTaxFee,
@@ -415,7 +415,7 @@ export default function ListingsPage() {
         creditScore: profile.creditScore || 0,
         mileage: listing.retailListing?.miles !== undefined ? listing.retailListing.miles : 0,
         seats: listing.vehicle.seats,
-        downPayment: 0,
+        downPayment: profile.defaultDownPayment || 0,
         dealerFees: 0,
         governmentFees: 0,
         otherFees: 0,
