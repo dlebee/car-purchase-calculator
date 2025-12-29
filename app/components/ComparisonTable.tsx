@@ -456,7 +456,7 @@ export default function ComparisonTable({ cars, downPaymentOverride, termOverrid
                 const taxRate = showTaxRate ? carWithOverride.taxRate : null;
                 
                 // Show APR for total interest field
-                const showApr = field.key === 'totalInterest' && (field as any).showApr;
+                const showApr = field.key === 'totalInterest';
                 const apr = showApr ? carWithOverride.apr : null;
                 
                 return (

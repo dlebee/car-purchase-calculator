@@ -122,6 +122,47 @@ export default function ComparePage() {
     setAnalysisError(null);
   };
 
+  const handleSelectByModel = (make: string, model: string) => {
+    setSelectedCarIds((prev) => {
+      const newSet = new Set(prev);
+      const carsFromModel = cars.filter(c => 
+        c.make.toLowerCase() === make.toLowerCase() && 
+        c.model.toLowerCase() === model.toLowerCase()
+      );
+      const allSelected = carsFromModel.every(car => prev.has(car.id));
+      
+      if (allSelected) {
+        carsFromModel.forEach(car => newSet.delete(car.id));
+      } else {
+        carsFromModel.forEach(car => newSet.add(car.id));
+      }
+      return newSet;
+    });
+    setAnalysis(null);
+    setAnalysisError(null);
+  };
+
+  const handleSelectByTrim = (make: string, model: string, tier: string) => {
+    setSelectedCarIds((prev) => {
+      const newSet = new Set(prev);
+      const carsFromTrim = cars.filter(c => 
+        c.make.toLowerCase() === make.toLowerCase() && 
+        c.model.toLowerCase() === model.toLowerCase() &&
+        (c.tier || '').toLowerCase() === (tier || '').toLowerCase()
+      );
+      const allSelected = carsFromTrim.every(car => prev.has(car.id));
+      
+      if (allSelected) {
+        carsFromTrim.forEach(car => newSet.delete(car.id));
+      } else {
+        carsFromTrim.forEach(car => newSet.add(car.id));
+      }
+      return newSet;
+    });
+    setAnalysis(null);
+    setAnalysisError(null);
+  };
+
   const handleDeleteCar = (carId: string) => {
     const car = cars.find(c => c.id === carId);
     const carName = car ? `${car.year} ${car.make} ${car.model}` : 'this car';
@@ -297,44 +338,114 @@ export default function ComparePage() {
                 </div>
               </div>
               
-              {/* Group cars by make */}
+              {/* Group cars by make > model > trim */}
               {Array.from(new Set(cars.map(c => c.make.toLowerCase()))).sort().map((makeLower) => {
                 const make = cars.find(c => c.make.toLowerCase() === makeLower)?.make || makeLower;
                 const carsFromMake = cars.filter(c => c.make.toLowerCase() === makeLower);
+                const models = Array.from(new Set(carsFromMake.map(c => c.model.toLowerCase()))).sort();
+                
                 return (
-                  <div key={make} className="mb-4">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div key={make} className="mb-6">
+                    <div className="flex items-center gap-2 mb-2">
                       <h3 
                         onClick={() => handleSelectByMake(make)}
-                        className="text-sm font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                        className="text-base font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                         title={`Click to select all ${make} cars`}
                       >
                         {make} ({carsFromMake.length})
                       </h3>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 ml-4">
-                      {carsFromMake.map((car) => (
-                        <label
-                          key={car.id}
-                          className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedCarIds.has(car.id)}
-                            onChange={() => handleToggleCar(car.id)}
-                            className="w-4 h-4 text-blue-600 rounded flex-shrink-0"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                              {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
-                            </div>
-                            <div className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
-                              {car.dealership ? `${car.dealership} • ` : ''}${car.negotiatedPrice > 0 ? `$${car.negotiatedPrice.toLocaleString()}` : 'No price'}
-                            </div>
+                    
+                    {/* Group by model */}
+                    {models.map((modelLower) => {
+                      const model = carsFromMake.find(c => c.model.toLowerCase() === modelLower)?.model || modelLower;
+                      const carsFromModel = carsFromMake.filter(c => c.model.toLowerCase() === modelLower);
+                      const trims = Array.from(new Set(carsFromModel.map(c => (c.tier || '').toLowerCase()))).sort();
+                      
+                      return (
+                        <div key={`${make}-${model}`} className="mb-4 ml-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 
+                              onClick={() => handleSelectByModel(make, model)}
+                              className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                              title={`Click to select all ${make} ${model} cars`}
+                            >
+                              {model} ({carsFromModel.length})
+                            </h4>
                           </div>
-                        </label>
-                      ))}
-                    </div>
+                          
+                          {/* Group by trim/tier */}
+                          {trims.length > 1 || (trims.length === 1 && trims[0] !== '') ? (
+                            trims.map((trimLower) => {
+                              const trim = carsFromModel.find(c => (c.tier || '').toLowerCase() === trimLower)?.tier || trimLower || 'Base';
+                              const carsFromTrim = carsFromModel.filter(c => (c.tier || '').toLowerCase() === trimLower);
+                              
+                              return (
+                                <div key={`${make}-${model}-${trim}`} className="mb-3 ml-4">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h5 
+                                      onClick={() => handleSelectByTrim(make, model, trim)}
+                                      className="text-xs font-medium text-purple-600 dark:text-purple-400 cursor-pointer hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                                      title={`Click to select all ${make} ${model} ${trim} cars`}
+                                    >
+                                      {trim || 'Base'} ({carsFromTrim.length})
+                                    </h5>
+                                  </div>
+                                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 ml-4">
+                                    {carsFromTrim.map((car) => (
+                                      <label
+                                        key={car.id}
+                                        className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedCarIds.has(car.id)}
+                                          onChange={() => handleToggleCar(car.id)}
+                                          className="w-4 h-4 text-blue-600 rounded flex-shrink-0"
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                          <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                                            {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
+                                          </div>
+                                          <div className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                                            {car.dealership ? `${car.dealership} • ` : ''}${car.negotiatedPrice > 0 ? `$${car.negotiatedPrice.toLocaleString()}` : 'No price'}
+                                          </div>
+                                        </div>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            // If no trims or only one trim, show cars directly under model
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 ml-4">
+                              {carsFromModel.map((car) => (
+                                <label
+                                  key={car.id}
+                                  className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCarIds.has(car.id)}
+                                    onChange={() => handleToggleCar(car.id)}
+                                    className="w-4 h-4 text-blue-600 rounded flex-shrink-0"
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                                      {car.year} {car.make} {car.model}{car.tier && car.tier.trim() !== '' ? ` ${car.tier}` : ''}
+                                    </div>
+                                    <div className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                                      {car.dealership ? `${car.dealership} • ` : ''}${car.negotiatedPrice > 0 ? `$${car.negotiatedPrice.toLocaleString()}` : 'No price'}
+                                    </div>
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
